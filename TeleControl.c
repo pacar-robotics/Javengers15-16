@@ -1,5 +1,4 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
@@ -81,8 +80,6 @@ void initializeRobot()
   SpindleState=Stopped;
   LiftState=Stopped;
 
-  clearTimer(T1);//timer for spindle functions
-  clearTimer(T2);//timer for lift functions
   nMotorEncoder[Lift]=0;
 
   return;
@@ -127,13 +124,12 @@ task main()
 
   waitForStart();   // wait for start of tele-op phase
 
+  clearTimer(T1);//timer for spindle functions
+  clearTimer(T2);//timer for lift functions
+
 	int threshold = 10;             /* Int 'threshold' will allow us to ignore low       */
                                   /* readings that keep our robot in perpetual motion. */
 
-
-  //encoders have 1440 clicks per rotation.
-
-  //set Lift Motor encoders to zero, to ensure crrect limits
 
   //launch the LiftSafetyWatch tasks
 
@@ -334,25 +330,40 @@ task LiftSafetyLowerLimitWatch(){
 
 void MoveLiftToPosition(int EncoderValue)
 {
-	//first stop the motor
-	motor[Lift]=0;
-	LiftState=Stopped;
+
 	//Now check where we need to be compared to where we are
 	if(nMotorEncoder[Lift]>EncoderValue){
 		//we need to move down
-		while(nMotorEncoder[Lift]>EncoderValue){
-			motor[Lift]=-35;
-			LiftState=Running;
+
+
+		LiftState=Running;
+		motor[Lift]=-60;
+
+		while((nMotorEncoder[Lift]>EncoderValue)&&(nMotorEncoder[Lift]>LIFT_LOWER)){
+			//let the motor lift run until EncoderValue becomes larger than the target or we reach the last segment down
+		  //if we reach the last segment down we want to slow down.
 		}
+
+		if(nMotorEncoder[Lift]>EncoderValue){
+			//we are now below the height of the lower base and need to slow down to let the last segment fall slowly
+			//This should only execute when the target is the base of the lift
+			motor[Lift]=-20;
+			while(nMotorEncoder[Lift]>EncoderValue){
+					//let the motor lift run until EncoderValue becomes larger than the target
+			}
+		}
+
 	}else if(nMotorEncoder[Lift]<EncoderValue){
 		//we need to move up
+		motor[Lift]=80;
+		LiftState=Running;
 		while(nMotorEncoder[Lift]<EncoderValue){
-			motor[Lift]=50;
-			LiftState=Running;
+			//let the motor run until EncoderValue becomes lower than the target
 		}
 
 	}
 	//If we are already at the EncoderValue target we dont have to do anything
+
 	//stop the motor
 	motor[Lift]=0;
 	LiftState=Stopped;
