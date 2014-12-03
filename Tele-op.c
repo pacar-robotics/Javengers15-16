@@ -14,7 +14,7 @@
 
 #include "JoystickDriver.c"  //Include file to "handle" the Bluetooth messages.
 
-void initializeRobot( void );
+void initializeRobot(void);
 
 // We can change the controller numbers later for buttons.
 #define BUTTON_LEFT joy1Btn(1)
@@ -33,17 +33,20 @@ void initializeRobot( void );
 #define CTRL2_RIGHT_X joy2_x2
 #define CTRL2_RIGHT_Y	joy2_y2
 
-task main () {
+task main()
+{
 	initializeRobot();
 	waitForStart();
 
-	while ( 1 ) {
-		getJoystickSettings( joystick );
+	while (1)
+	{
+		getJoystickSettings(joystick);
 		// More code below in while loop...
 	}
 }
 
-void initializeRobot ( void ) {
+void initializeRobot (void)
+{
 	// empty for now
 	return;
 }
