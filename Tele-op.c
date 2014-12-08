@@ -14,33 +14,52 @@
 
 #include "JoystickDriver.c"  //Include file to "handle" the Bluetooth messages.
 
-void initializeRobot(void);
+// IMPORTANT: ANY VARIABLES/CONSTANTS WITH THE CONSTANT "FOO" MUST BE MEASURED AND CHANGED
+#define FOO 0
 
-// We can change the controller numbers later for buttons.
-#define BUTTON_LEFT joy1Btn(1)
-#define BUTTON_BOTTOM joy1Btn(2)
-#define BUTTON_TOP joy1Btn(3)
-#define BUTTON_RIGHT joy1Btn(4)
+// Control 1 Buttons
+#define CTRL1_BUTTON_LEFT joy1Btn(1)
+#define CTRL1_BUTTON_BOTTOM joy1Btn(2)
+#define CTRL1_BUTTON_TOP joy1Btn(3)
+#define CTRL1_BUTTON_RIGHT joy1Btn(4)
+// Control 2 Buttons
+#define CTRL2_BUTTON_LEFT joy2Btn(1)
+#define CTRL2_BUTTON_BOTTOM joy2Btn(2)
+#define CTRL2_BUTTON_TOP joy2Btn(3)
+#define CTRL2_BUTTON_RIGHT joy2Btn(4)
 
 // Made this so it is easier to understand. You won't have to type the whole thing because of auto-complete.
-#define CTRL1_LEFT_X joy1_x1
-#define CTRL1_LEFT_Y joy1_y1
-#define CTRL1_RIGHT_X joy1_x2
-#define CTRL1_RIGHT_Y joy1_y2
+#define CTRL1_LEFTJOY_X joy1_x1
+#define CTRL1_LEFTJOY_Y joy1_y1
+#define CTRL1_RIGHTJOY_X joy1_x2
+#define CTRL1_RIGHTJOY_Y joy1_y2
 // We may not need the CTRL2, but I included them for now.
-#define CTRL2_LEFT_X joy2_x1
-#define CTRL2_LEFT_Y joy2_y1
-#define CTRL2_RIGHT_X joy2_x2
-#define CTRL2_RIGHT_Y	joy2_y2
+#define CTRL2_LEFTJOY_X joy2_x1
+#define CTRL2_LEFTJOY_Y joy2_y1
+#define CTRL2_RIGHTJOY_X joy2_x2
+#define CTRL2_RIGHTJOY_Y	joy2_y2
+
+// Lift tasks
+#define LIFT_MAX FOO
+#define LIFT_MIN FOO
+
+void initializeRobot(void);
+void joyStickWheels (void);
+task liftCheckMAX ();
+task liftCheckMIN ();
 
 task main()
 {
 	initializeRobot();
 	waitForStart();
 
+	startTask (liftCheckMAX);
+	startTask (liftCheckMIN);
+
 	while (1)
 	{
 		getJoystickSettings(joystick);
+		joyStickWheels();
 		// More code below in while loop...
 	}
 }
@@ -49,4 +68,27 @@ void initializeRobot (void)
 {
 	// empty for now
 	return;
+}
+
+task liftCheckMAX () {
+	if (nMotorEncoder[Lift] > LIFT_MAX)
+	{
+		while (nMotorEncoder[Lift] > LIFT_MAX)
+			motor[Lift] = -20;
+		motor[Lift] = 0;
+	}
+}
+
+task liftCheckMIN () {
+	if (nMotorEncoder[Lift] < LIFT_MIN)
+	{
+		while (nMotorEncoder[Lift] < LIFT_MIN)
+			motor[Lift] = 20;
+		motor[Lift] = 0;
+	}
+}
+
+void joyStickWheels (void)
+{
+	//empty for now
 }
