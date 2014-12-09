@@ -17,36 +17,45 @@
 // IMPORTANT: ANY VARIABLES/CONSTANTS WITH THE CONSTANT "FOO" MUST BE MEASURED AND CHANGED
 #define FOO 0
 
-// Control 1 Buttons
+// Made these new button names so they are easier to understand. You won't have to type the whole thing because of auto-complete.
+
+// Controller 1 Buttons
 #define CTRL1_BUTTON_LEFT joy1Btn(1)
 #define CTRL1_BUTTON_BOTTOM joy1Btn(2)
 #define CTRL1_BUTTON_TOP joy1Btn(3)
 #define CTRL1_BUTTON_RIGHT joy1Btn(4)
-// Control 2 Buttons
+// Controller 2 Buttons
 #define CTRL2_BUTTON_LEFT joy2Btn(1)
 #define CTRL2_BUTTON_BOTTOM joy2Btn(2)
 #define CTRL2_BUTTON_TOP joy2Btn(3)
 #define CTRL2_BUTTON_RIGHT joy2Btn(4)
 
-// Made this so it is easier to understand. You won't have to type the whole thing because of auto-complete.
-#define CTRL1_LEFTJOY_X joy1_x1
-#define CTRL1_LEFTJOY_Y joy1_y1
-#define CTRL1_RIGHTJOY_X joy1_x2
-#define CTRL1_RIGHTJOY_Y joy1_y2
-// We may not need the CTRL2, but I included them for now.
-#define CTRL2_LEFTJOY_X joy2_x1
-#define CTRL2_LEFTJOY_Y joy2_y1
-#define CTRL2_RIGHTJOY_X joy2_x2
-#define CTRL2_RIGHTJOY_Y	joy2_y2
+// Controller 1 Joysticks
+#define CTRL1_JOY_LEFT_X joystick.joy1_x1
+#define CTRL1_JOY_LEFT_Y joystick.joy1_y1
+#define CTRL1_JOY_RIGHT_X joystick.joy1_x2
+#define CTRL1_JOY_RIGHT_Y joystick.joy1_y2
+// Controller 2 Joysticks
+#define CTRL2_JOY_LEFT_X joystick.joy2_x1
+#define CTRL2_JOY_LEFT_Y joystick.joy2_y1
+#define CTRL2_JOY_RIGHT_X joystick.joy2_x2
+#define CTRL2_JOY_RIGHT_Y	joystick.joy2_y2
+
+// Controllers' D-Pads. IDEA FOR D-PAD: USE RIGHT AND LEFT BUTTONS FOR SPINNING.
+#define CTRL1_DPAD joystick.joy1_TopHat
+#define CTRL2_DPAD joystick.joy2_TopHat
+#define DPAD_LEFT 6
+#define DPAD_RIGHT 2
 
 // Lift tasks
 #define LIFT_MAX FOO
 #define LIFT_MIN FOO
 
+// Primary functions/tasks
 void initializeRobot(void);
-void joyStickWheels (void);
-task liftCheckMAX ();
+task liftCheckMAX (); // Checks if the lift is too high
 task liftCheckMIN ();
+void wheelsMove(void);
 
 task main()
 {
@@ -59,7 +68,7 @@ task main()
 	while (1)
 	{
 		getJoystickSettings(joystick);
-		joyStickWheels();
+		wheelsMove();
 		// More code below in while loop...
 	}
 }
@@ -67,14 +76,13 @@ task main()
 void initializeRobot (void)
 {
 	// empty for now
-	return;
 }
 
 task liftCheckMAX () {
 	if (nMotorEncoder[Lift] > LIFT_MAX)
 	{
 		while (nMotorEncoder[Lift] > LIFT_MAX)
-			motor[Lift] = -20;
+			motor[Lift] = -20; // Might have to change values...
 		motor[Lift] = 0;
 	}
 }
@@ -83,12 +91,26 @@ task liftCheckMIN () {
 	if (nMotorEncoder[Lift] < LIFT_MIN)
 	{
 		while (nMotorEncoder[Lift] < LIFT_MIN)
-			motor[Lift] = 20;
+			motor[Lift] = 20; // Might have to change values...
 		motor[Lift] = 0;
 	}
 }
 
-void joyStickWheels (void)
+void wheelsMove (void)
 {
-	//empty for now
+	if (CTRL1_DPAD == DPAD_RIGHT) // Spins robot to the right
+	{
+		motor[LeftWheels] = 30; // Might have to change values...
+		motor[RightWheels] = -30;
+	}
+	else if (CTRL1_DPAD == DPAD_LEFT) // Spins robot to the left
+	{
+		motor[LeftWheels] = -30;
+		motor[RightWheels] = 30;
+	}
+	else // If there is no input from the D-Pad, use joysticks
+	{
+		motor[LeftWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
+		motor[RightWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100;
+	}
 }
