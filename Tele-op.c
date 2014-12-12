@@ -1,10 +1,11 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, PIDControl, reversed, encoder)
-#pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
+#pragma config(Servo,  srvo_S1_C3_1,    Gate,                 tServoStandard)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_4,    servo4,               tServoNone)
@@ -24,11 +25,18 @@
 #define CTRL1_BUTTON_BOTTOM joy1Btn(2)
 #define CTRL1_BUTTON_TOP joy1Btn(3)
 #define CTRL1_BUTTON_RIGHT joy1Btn(4)
+#define BTN_ROTATESPINDLE_FORWARD joy1Btn(7)
+#define BTN_ROTATESPINDLE_BACKWARD joy1Btn(8)
+#define BTN_GRAB_GOALBASE FOO
 // Controller 2 Buttons
-#define CTRL2_BUTTON_LEFT joy2Btn(1)
-#define CTRL2_BUTTON_BOTTOM joy2Btn(2)
-#define CTRL2_BUTTON_TOP joy2Btn(3)
-#define CTRL2_BUTTON_RIGHT joy2Btn(4)
+#define BTN_LIFT_LOWERGOAL joy2Btn(1)
+#define BTN_LIFT_BASE joy2Btn(2)
+#define BTN_LIFT_TOPGOAL joy2Btn(3)
+#define BTN_LIFT_MIDDLEGOAL joy2Btn(4)
+#define BTN_GATE_OPEN joy1Btn(6)
+#define BTN_GATE_CLOSED joy1Btn(5)
+#define BTN_LIFT_UP joy1Btn(11)
+#define BTN_LIFT_DOWN joy1Btn(12)
 
 // Controller 1 Joysticks
 #define CTRL1_JOY_LEFT_X joystick.joy1_x1
@@ -48,14 +56,23 @@
 #define DPAD_RIGHT 2
 
 // Lift tasks
-#define LIFT_MAX FOO
-#define LIFT_MIN FOO
+#define LIFT_MAX 22300
+#define LIFT_TOP 22250
+#define LIFT_MIDDLE 14350
+#define LIFT_LOWER 7150
+#define LIFT_BASE 0
+
+//Gate
+#define GATE_CLOSED 50
+#define GATE_OPEN 150
+
 
 // Primary functions/tasks
 void initializeRobot(void);
 task liftCheckMAX (); // Checks if the lift is too high
 task liftCheckMIN ();
 void wheelsMove(void);
+void moveLift(int encoderCounts);
 
 task main()
 {
@@ -69,7 +86,60 @@ task main()
 	{
 		getJoystickSettings(joystick);
 		wheelsMove();
-		// More code below in while loop...
+		if(BTN_LIFT_UP)
+		{
+			//BLANK for now
+		}
+
+		if(BTN_LIFT_DOWN)
+		{
+			//Blank for now
+		}
+
+		if(BTN_ROTATESPINDLE_FORWARD)
+		{
+			//Blank for now
+		}
+
+		if(BTN_ROTATESPINDLE_BACKWARD)
+		{
+			//Blank for now
+		}
+
+		if(BTN_GATE_OPEN)
+		{
+			servo(Gate)= GATE_OPEN;
+		}
+
+		if(BTN_GATE_CLOSED)
+		{
+			servo(Gate)= GATE_CLOSED;
+		}
+
+		if(BTN_LIFT_BASE)
+		{
+			moveLift(LIFT_BASE);
+		}
+
+		if(BTN_LIFT_LOWERGOAL)
+		{
+			moveLift(LIFT_LOWER);
+		}
+
+		if(BTN_LIFT_MIDDLEGOAL)
+		{
+			moveLift(LIFT_MIDDLE);
+		}
+
+		if(BTN_LIFT_TOPGOAL)
+		{
+			moveLift(LIFT_TOP);
+		}
+
+		if(BTN_GRAB_GOALBASE)
+		{
+			//blank for now
+		}
 	}
 }
 
@@ -88,9 +158,9 @@ task liftCheckMAX () {
 }
 
 task liftCheckMIN () {
-	if (nMotorEncoder[Lift] < LIFT_MIN)
+	if (nMotorEncoder[Lift] < LIFT_BASE)
 	{
-		while (nMotorEncoder[Lift] < LIFT_MIN)
+		while (nMotorEncoder[Lift] < LIFT_BASE)
 			motor[Lift] = 20; // Might have to change values...
 		motor[Lift] = 0;
 	}
@@ -113,4 +183,10 @@ void wheelsMove (void)
 		motor[LeftWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
 		motor[RightWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100;
 	}
+}
+
+
+void moveLift(int encoderCounts)
+{
+	//Blank for now
 }
