@@ -79,6 +79,7 @@ task liftCheckMAX (); // Checks if the lift is too high
 task liftCheckMIN ();
 void wheelsMove(void);
 void moveLift(int encoderCounts);
+void buttonFunctions();
 
 task main()
 {
@@ -96,97 +97,7 @@ task main()
 	{
 		getJoystickSettings(joystick);
 		wheelsMove();
-		if(BTN_LIFT_UP)
-		{
-			//BLANK for now
-		}
-
-		if(BTN_LIFT_DOWN)
-		{
-			//Blank for now
-		}
-
-		if(BTN_ROTATESPINDLE_FORWARD)
-		{
-			if(time1(T1)>500)		//checks to see if button isn't pressed to fast
-			{
-				if(SpindleState== Stopped)
-				{
-					motor[Spindle]=100;		//starts the Spindle
-					SpindleState= Running;
-				}
-				else
-					{
-						motor[Spindle]=0;		//stops the Spindle
-						SpindleState=Stopped;
-					}
-				}
-				clearTimer(T1);
-		}
-
-		if(BTN_ROTATESPINDLE_BACKWARD)
-		{
-			if(time1(T1)>500)	//checks to see if button isn't pressed to fast
-			{
-				if(SpindleState== Stopped)
-				{
-					motor[Spindle]=-100;		//starts the spindle (backwards)
-					SpindleState= Running;
-				}
-				else
-					{
-						motor[Spindle]=0;		//stops the spindle
-						SpindleState=Stopped;
-					}
-				}
-				clearTimer(T1);
-		}
-
-		if(BTN_GATE_CTRL)
-		{
-			if(time1(T3)>500)	//checks to see if button is pressed too fast
-			{
-				if(GateState== Closed)
-				{
-					servo[Gate]= GATE_OPEN;	//opens gate
-					GateState=Open;
-				}
-				else
-				{
-					servo[Gate]=GATE_CLOSED;	//closes gate
-					GateState=Closed;
-				}
-				clearTimer(T3);
-			}
-		}
-
-		if(BTN_LIFT_BASE)
-		{
-			moveLift(LIFT_BASE);
-		}
-
-		if(BTN_LIFT_LOWERGOAL)
-		{
-			moveLift(LIFT_LOWER);
-		}
-
-		if(BTN_LIFT_MIDDLEGOAL)
-		{
-			moveLift(LIFT_MIDDLE);
-		}
-
-		if(BTN_LIFT_TOPGOAL)
-		{
-			moveLift(LIFT_TOP);
-		}
-
-		if(BTN_GRAB_GOALBASE)
-		{
-			//blank for now
-		}
-
-		//Wheel Control needed below
-
+		buttonFunctions();
 	}
 }
 
@@ -232,6 +143,97 @@ void wheelsMove (void)
 	}
 }
 
+void buttonFunctions()
+{
+	if(BTN_LIFT_UP)
+	{
+		//BLANK for now
+	}
+
+	if(BTN_LIFT_DOWN)
+	{
+		//Blank for now
+	}
+
+	if(BTN_ROTATESPINDLE_FORWARD)
+	{
+		if(time1(T1)>500)		//checks to see if button isn't pressed to fast
+		{
+			if(SpindleState== Stopped)
+			{
+				motor[Spindle]=100;		//starts the Spindle
+				SpindleState= Running;
+			}
+			else
+				{
+					motor[Spindle]=0;		//stops the Spindle
+					SpindleState=Stopped;
+				}
+			}
+			clearTimer(T1);
+	}
+
+	if(BTN_ROTATESPINDLE_BACKWARD)
+	{
+		if(time1(T1)>500)	//checks to see if button isn't pressed to fast
+		{
+			if(SpindleState== Stopped)
+			{
+				motor[Spindle]=-100;		//starts the spindle (backwards)
+				SpindleState= Running;
+			}
+			else
+				{
+					motor[Spindle]=0;		//stops the spindle
+					SpindleState=Stopped;
+				}
+			}
+			clearTimer(T1);
+	}
+
+	if(BTN_GATE_CTRL)
+	{
+		if(time1(T3)>500)	//checks to see if button is pressed too fast
+		{
+			if(GateState== Closed)
+			{
+				servo[Gate]= GATE_OPEN;	//opens gate
+				GateState=Open;
+			}
+			else
+			{
+				servo[Gate]=GATE_CLOSED;	//closes gate
+				GateState=Closed;
+			}
+			clearTimer(T3);
+		}
+	}
+
+	if(BTN_LIFT_BASE)
+	{
+		moveLift(LIFT_BASE);
+	}
+
+	if(BTN_LIFT_LOWERGOAL)
+	{
+		moveLift(LIFT_LOWER);
+	}
+
+	if(BTN_LIFT_MIDDLEGOAL)
+	{
+		moveLift(LIFT_MIDDLE);
+	}
+
+	if(BTN_LIFT_TOPGOAL)
+	{
+		moveLift(LIFT_TOP);
+	}
+
+	if(BTN_GRAB_GOALBASE)
+	{
+		//blank for now
+	}
+}
 
 void moveLift(int encoderCounts)
 {
