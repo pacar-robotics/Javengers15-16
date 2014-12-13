@@ -33,8 +33,7 @@
 #define BTN_LIFT_BASE joy2Btn(2)
 #define BTN_LIFT_TOPGOAL joy2Btn(3)
 #define BTN_LIFT_MIDDLEGOAL joy2Btn(4)
-#define BTN_GATE_OPEN joy1Btn(6)
-#define BTN_GATE_CLOSED joy1Btn(5)
+#define BTN_GATE_CTRL joy1Btn(6)
 #define BTN_LIFT_UP joy1Btn(11)
 #define BTN_LIFT_DOWN joy1Btn(12)
 
@@ -66,6 +65,13 @@
 #define GATE_CLOSED 50
 #define GATE_OPEN 150
 
+enum SpindleStateEnum {Running, Stopped};
+enum LiftStateEnum {Running, Stopped};
+enum GateStateEnum {Open, Closed};
+
+SpindleStateEnum SpindleState;
+LiftStateEnum LiftState;
+GateStateEnum GateState;
 
 // Primary functions/tasks
 void initializeRobot(void);
@@ -81,6 +87,10 @@ task main()
 
 	startTask (liftCheckMAX);
 	startTask (liftCheckMIN);
+
+	clearTimer (T1);	//timer used for Spindle
+	clearTimer (T2);	//timer used for Lift
+	clearTimer (T3);	//timer used for Gate
 
 	while (1)
 	{
@@ -98,22 +108,56 @@ task main()
 
 		if(BTN_ROTATESPINDLE_FORWARD)
 		{
-			//Blank for now
+			if(time1(T1)>500)		//checks to see if button isn't pressed to fast
+			{
+				if(SpindleState== Stopped)
+				{
+					motor[Spindle]=100;		//starts the Spindle
+					SpindleState= Running;
+				}
+				else
+					{
+						motor[Spindle]=0;		//stops the Spindle
+						SpindleState=Stopped;
+					}
+				}
+				clearTimer(T1);
 		}
 
 		if(BTN_ROTATESPINDLE_BACKWARD)
 		{
-			//Blank for now
+			if(time1(T1)>500)	//checks to see if button isn't pressed to fast
+			{
+				if(SpindleState== Stopped)
+				{
+					motor[Spindle]=-100;		//starts the spindle (backwards)
+					SpindleState= Running;
+				}
+				else
+					{
+						motor[Spindle]=0;		//stops the spindle
+						SpindleState=Stopped;
+					}
+				}
+				clearTimer(T1);
 		}
 
-		if(BTN_GATE_OPEN)
+		if(BTN_GATE_CTRL)
 		{
-			servo(Gate)= GATE_OPEN;
-		}
-
-		if(BTN_GATE_CLOSED)
-		{
-			servo(Gate)= GATE_CLOSED;
+			if(time1(T3)>500)	//checks to see if button is pressed too fast
+			{
+				if(GateState== Closed)
+				{
+					servo[Gate]= GATE_OPEN;	//opens gate
+					GateState=Open;
+				}
+				else
+				{
+					servo[Gate]=GATE_CLOSED;	//closes gate
+					GateState=Closed;
+				}
+				clearTimer(T3);
+			}
 		}
 
 		if(BTN_LIFT_BASE)
@@ -140,6 +184,9 @@ task main()
 		{
 			//blank for now
 		}
+
+		//Wheel Control needed below
+
 	}
 }
 
