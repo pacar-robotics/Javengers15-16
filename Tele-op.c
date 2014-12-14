@@ -54,7 +54,7 @@
 #define DPAD_LEFT 6
 #define DPAD_RIGHT 2
 
-// Lift tasks
+// Lift
 #define LIFT_MAX 22300
 #define LIFT_TOP 22250
 #define LIFT_MIDDLE 14350
@@ -147,12 +147,38 @@ void buttonFunctions()
 {
 	if(BTN_LIFT_UP)
 	{
-		//BLANK for now
+		if(time1(T2)>500) 	//checks to see if button isn't pressed to fast
+		{
+			if(LiftState== Stopped)
+			{
+				motor[Lift]= 70;
+				LiftState= Running;
+			}
+			else
+			{
+				motor[Lift]= 0;
+				LiftState= Stopped;
+			}
+			clearTimer(T2);
+		}
 	}
 
 	if(BTN_LIFT_DOWN)
 	{
-		//Blank for now
+		if(time1(T2)>500) 	//checks to see if button isn't pressed to fast
+		{
+			if(LiftState== Stopped)
+			{
+				motor[Lift]= -70;
+				LiftState= Running;
+			}
+			else
+			{
+				motor[Lift]= 0;
+				LiftState= Stopped;
+			}
+			clearTimer(T2);
+		}
 	}
 
 	if(BTN_ROTATESPINDLE_FORWARD)
@@ -169,8 +195,8 @@ void buttonFunctions()
 					motor[Spindle]=0;		//stops the Spindle
 					SpindleState=Stopped;
 				}
-			}
 			clearTimer(T1);
+		}
 	}
 
 	if(BTN_ROTATESPINDLE_BACKWARD)
@@ -187,8 +213,8 @@ void buttonFunctions()
 					motor[Spindle]=0;		//stops the spindle
 					SpindleState=Stopped;
 				}
-			}
 			clearTimer(T1);
+		}
 	}
 
 	if(BTN_GATE_CTRL)
