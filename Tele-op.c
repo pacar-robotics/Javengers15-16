@@ -33,9 +33,9 @@
 #define BTN_LIFT_BASE joy2Btn(2)
 #define BTN_LIFT_TOPGOAL joy2Btn(3)
 #define BTN_LIFT_MIDDLEGOAL joy2Btn(4)
-#define BTN_GATE_CTRL joy1Btn(6)
-#define BTN_LIFT_UP joy1Btn(11)
-#define BTN_LIFT_DOWN joy1Btn(12)
+#define BTN_GATE_CTRL joy2Btn(6)
+#define BTN_LIFT_UP joy2Btn(11)
+#define BTN_LIFT_DOWN joy2Btn(12)
 
 // Controller 1 Joysticks
 #define CTRL1_JOY_LEFT_X joystick.joy1_x1
@@ -103,7 +103,11 @@ task main()
 
 void initializeRobot (void)
 {
-	// empty for now
+	LiftState=Stopped;
+	servo[Gate]= GATE_CLOSED;
+	GateState=Closed;
+	SpindleState= Stopped;
+
 }
 
 task liftCheckMAX () {
@@ -263,5 +267,34 @@ void buttonFunctions()
 
 void moveLift(int encoderCounts)
 {
-	//Blank for now
+	if(nMotorEncoder[Lift]>encoderCounts)
+	{
+		LiftState= Running;
+		motor[Lift]= -65;
+		while((nMotorEncoder[Lift]>encoderCounts)&&(nMotorEncoder[Lift]>LIFT_LOWER))
+		{
+			//idle loop
+		}
+
+		if(nMotorEncoder[Lift]>encoderCounts)
+		{
+			motor[Lift]=-30;
+			while(nMotorEncoder[Lift]>encoderCounts)
+			{
+				//idle
+			}
+		}
+	}
+	else if(nMotorEncoder[Lift]<encoderCounts)
+	{
+		motor[Lift]= 80;
+		LiftState= Running;
+		while(nMotorEncoder[Lift]<encoderCounts)
+		{
+			//idle
+		}
+	}
+
+	motor[Lift]=0;
+	LiftState=Stopped;
 }
