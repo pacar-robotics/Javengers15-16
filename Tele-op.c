@@ -53,6 +53,8 @@
 #define CTRL2_DPAD joystick.joy2_TopHat
 #define DPAD_LEFT 6
 #define DPAD_RIGHT 2
+#define DPAD_TOP 0
+#define DPAD_BOTTOM 4
 
 // Lift
 #define LIFT_MAX 22300
@@ -139,6 +141,16 @@ void wheelsMove (void)
 	{
 		motor[LeftWheels] = -30;
 		motor[RightWheels] = 30;
+	}
+	else if (CTRL1_DPAD == DPAD_TOP)
+	{
+		motor[LeftWheels] = 45;
+		motor[RightWheels] = 45;
+	}
+	else if (CTRL1_DPAD == DPAD_BOTTOM)
+	{
+		motor[LeftWheels] = -40;
+		motor[RightWheels] = -40;
 	}
 	else // If there is no input from the D-Pad, use joysticks
 	{
