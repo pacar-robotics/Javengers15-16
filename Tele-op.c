@@ -50,11 +50,14 @@
 
 // Controllers' D-Pads. IDEA FOR D-PAD: USE RIGHT AND LEFT BUTTONS FOR SPINNING.
 #define CTRL1_DPAD joystick.joy1_TopHat
-#define CTRL2_DPAD joystick.joy2_TopHat
-#define DPAD_LEFT 6
-#define DPAD_RIGHT 2
 #define DPAD_TOP 0
+#define DPAD_TOP_RIGHT 1
+#define DPAD_RIGHT 2
+#define DPAD_BOTTOM_RIGHT 3
 #define DPAD_BOTTOM 4
+#define DPAD_BOTTOM_LEFT 5
+#define DPAD_LEFT 6
+#define DPAD_TOP_LEFT 7
 
 // Lift
 #define LIFT_MAX 22300
@@ -124,7 +127,8 @@ void clrTimers(void)
 	clearTimer (T3);	//timer used for Gate
 }
 
-task liftCheckMAX () {
+task liftCheckMAX ()
+{
 	if (nMotorEncoder[Lift] > LIFT_MAX)
 	{
 		while (nMotorEncoder[Lift] > LIFT_MAX)
@@ -133,7 +137,8 @@ task liftCheckMAX () {
 	}
 }
 
-task liftCheckMIN () {
+task liftCheckMIN ()
+{
 	if (nMotorEncoder[Lift] < LIFT_BASE)
 	{
 		while (nMotorEncoder[Lift] < LIFT_BASE)
@@ -144,30 +149,44 @@ task liftCheckMIN () {
 
 void wheelsMove (void)
 {
-	if (CTRL1_DPAD == DPAD_RIGHT) // Spins robot to the right
+	switch (CTRL1_DPAD)
 	{
-		motor[LeftWheels] = 30; // Might have to change values...
-		motor[RightWheels] = -30;
-	}
-	else if (CTRL1_DPAD == DPAD_LEFT) // Spins robot to the left
-	{
-		motor[LeftWheels] = -30;
-		motor[RightWheels] = 30;
-	}
-	else if (CTRL1_DPAD == DPAD_TOP)
-	{
+	case DPAD_TOP:
 		motor[LeftWheels] = 45;
 		motor[RightWheels] = 45;
-	}
-	else if (CTRL1_DPAD == DPAD_BOTTOM)
-	{
+		break;
+	case DPAD_BOTTOM:
 		motor[LeftWheels] = -40;
 		motor[RightWheels] = -40;
-	}
-	else // If there is no input from the D-Pad, use joysticks
-	{
+		break;
+	case DPAD_RIGHT:
+		motor[LeftWheels] = 30;
+		motor[RightWheels] = -30;
+		break;
+	case DPAD_LEFT:
+		motor[LeftWheels] = -30;
+		motor[RightWheels] = 30;
+		break;
+	case DPAD_TOP_RIGHT:
+		motor[LeftWheels] = 30;
+		motor[RightWheels] = 0;
+		break;
+	case DPAD_BOTTOM_RIGHT:
+		motor[LeftWheels] = -30;
+		motor[RightWheels] = 0;
+		break;
+	case DPAD_BOTTOM_LEFT:
+		motor[LeftWheels] = 0;
+		motor[RightWheels] = -30;
+		break;
+	case DPAD_TOP_LEFT:
+		motor[LeftWheels] = 0;
+		motor[RightWheels] = 30;
+		break;
+	default:
 		motor[LeftWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
 		motor[RightWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100;
+		break;
 	}
 }
 
@@ -182,7 +201,7 @@ void buttonFunctions()
 
 void liftOverride(void)
 {
-		if(BTN_LIFT_UP)
+	if(BTN_LIFT_UP)
 	{
 		if(time1(T2)>500) 	//checks to see if button isn't pressed to fast
 		{
@@ -231,10 +250,10 @@ void spindleMove(void)
 				SpindleState= Running;
 			}
 			else
-				{
-					motor[Spindle]=0;		//stops the Spindle
-					SpindleState=Stopped;
-				}
+			{
+				motor[Spindle]=0;		//stops the Spindle
+				SpindleState=Stopped;
+			}
 			clearTimer(T1);
 		}
 	}
@@ -248,10 +267,10 @@ void spindleMove(void)
 				SpindleState= Running;
 			}
 			else
-				{
-					motor[Spindle]=0;		//stops the spindle
-					SpindleState=Stopped;
-				}
+			{
+				motor[Spindle]=0;		//stops the spindle
+				SpindleState=Stopped;
+			}
 			clearTimer(T1);
 		}
 	}
@@ -303,7 +322,7 @@ void liftReach(void)
 
 void grabBase(void)
 {
-		if(BTN_GRAB_GOALBASE)
+	if(BTN_GRAB_GOALBASE)
 	{
 		//blank for now
 	}
