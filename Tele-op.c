@@ -77,11 +77,19 @@ GateStateEnum GateState;
 
 // Primary functions/tasks
 void initializeRobot(void);
-task liftCheckMAX (); // Checks if the lift is too high
-task liftCheckMIN ();
+void clrTimers(void);
+task liftCheckMAX(); // Checks if the lift is too high
+task liftCheckMIN();
 void wheelsMove(void);
+void buttonFunctions(void); // Has uses for buttons
+// Secondary functions
+void liftOverride(void);
+void spindleMove(void);
+void gateControl(void);
+void liftReach(void);
+void grabBase(void);
+// Tertiary functions
 void moveLift(int encoderCounts);
-void buttonFunctions();
 
 task main()
 {
@@ -90,10 +98,7 @@ task main()
 
 	startTask (liftCheckMAX);
 	startTask (liftCheckMIN);
-
-	clearTimer (T1);	//timer used for Spindle
-	clearTimer (T2);	//timer used for Lift
-	clearTimer (T3);	//timer used for Gate
+	clrTimers();
 
 	while (1)
 	{
@@ -110,6 +115,13 @@ void initializeRobot (void)
 	GateState=Closed;
 	SpindleState= Stopped;
 
+}
+
+void clrTimers(void)
+{
+	clearTimer (T1);	//timer used for Spindle
+	clearTimer (T2);	//timer used for Lift
+	clearTimer (T3);	//timer used for Gate
 }
 
 task liftCheckMAX () {
@@ -161,7 +173,16 @@ void wheelsMove (void)
 
 void buttonFunctions()
 {
-	if(BTN_LIFT_UP)
+	liftOverride();
+	spindleMove();
+	gateControl();
+	liftReach();
+	grabBase();
+}
+
+void liftOverride(void)
+{
+		if(BTN_LIFT_UP)
 	{
 		if(time1(T2)>500) 	//checks to see if button isn't pressed to fast
 		{
@@ -196,7 +217,10 @@ void buttonFunctions()
 			clearTimer(T2);
 		}
 	}
+}
 
+void spindleMove(void)
+{
 	if(BTN_ROTATESPINDLE_FORWARD)
 	{
 		if(time1(T1)>500)		//checks to see if button isn't pressed to fast
@@ -214,7 +238,6 @@ void buttonFunctions()
 			clearTimer(T1);
 		}
 	}
-
 	if(BTN_ROTATESPINDLE_BACKWARD)
 	{
 		if(time1(T1)>500)	//checks to see if button isn't pressed to fast
@@ -232,7 +255,10 @@ void buttonFunctions()
 			clearTimer(T1);
 		}
 	}
+}
 
+void gateControl(void)
+{
 	if(BTN_GATE_CTRL)
 	{
 		if(time1(T3)>500)	//checks to see if button is pressed too fast
@@ -250,7 +276,10 @@ void buttonFunctions()
 			clearTimer(T3);
 		}
 	}
+}
 
+void liftReach(void)
+{
 	if(BTN_LIFT_BASE)
 	{
 		moveLift(LIFT_BASE);
@@ -270,8 +299,11 @@ void buttonFunctions()
 	{
 		moveLift(LIFT_TOP);
 	}
+}
 
-	if(BTN_GRAB_GOALBASE)
+void grabBase(void)
+{
+		if(BTN_GRAB_GOALBASE)
 	{
 		//blank for now
 	}
