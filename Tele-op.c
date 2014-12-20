@@ -5,7 +5,7 @@
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, PIDControl, reversed, encoder)
-#pragma config(Servo,  srvo_S1_C3_1,    Gate,                 tServoStandard)
+#pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_4,    servo4,               tServoNone)
@@ -34,6 +34,7 @@
 #define BTN_LIFT_TOPGOAL joy2Btn(3)
 #define BTN_LIFT_MIDDLEGOAL joy2Btn(4)
 #define BTN_GATE_CTRL joy2Btn(6)
+//#define BTN_GATE_CLOSED joy2Btn (5)
 #define BTN_LIFT_UP joy2Btn(11)
 #define BTN_LIFT_DOWN joy2Btn(12)
 
@@ -48,7 +49,7 @@
 #define CTRL2_JOY_RIGHT_X joystick.joy2_x2
 #define CTRL2_JOY_RIGHT_Y	joystick.joy2_y2
 
-// Controllers' D-Pads. IDEA FOR D-PAD: USE RIGHT AND LEFT BUTTONS FOR SPINNING.
+// Controllers' D-Pads.
 #define CTRL1_DPAD joystick.joy1_TopHat
 #define DPAD_TOP 0
 #define DPAD_TOP_RIGHT 1
@@ -79,18 +80,18 @@ LiftStateEnum LiftState;
 GateStateEnum GateState;
 
 // Primary functions/tasks
-void initializeRobot(void);
-void clrTimers(void);
+void initializeRobot();
+void clrTimers();
 task liftCheckMAX(); // Checks if the lift is too high
 task liftCheckMIN();
-void wheelsMove(void);
-void buttonFunctions(void); // Has uses for buttons
+void wheelsMove();
+void buttonFunctions(); // Has uses for buttons
 // Secondary functions
-void liftOverride(void);
-void spindleMove(void);
-void gateControl(void);
-void liftReach(void);
-void grabBase(void);
+void liftOverride();
+void spindleMove();
+void gateControl();
+void liftReach();
+void grabBase();
 // Tertiary functions
 void moveLift(int encoderCounts);
 
@@ -111,7 +112,7 @@ task main()
 	}
 }
 
-void initializeRobot (void)
+void initializeRobot ()
 {
 	LiftState=Stopped;
 	servo[Gate]= GATE_CLOSED;
@@ -120,7 +121,7 @@ void initializeRobot (void)
 
 }
 
-void clrTimers(void)
+void clrTimers()
 {
 	clearTimer (T1);	//timer used for Spindle
 	clearTimer (T2);	//timer used for Lift
@@ -147,7 +148,7 @@ task liftCheckMIN ()
 	}
 }
 
-void wheelsMove (void)
+void wheelsMove ()
 {
 	switch (CTRL1_DPAD)
 	{
@@ -160,28 +161,28 @@ void wheelsMove (void)
 		motor[RightWheels] = -40;
 		break;
 	case DPAD_RIGHT:
-		motor[LeftWheels] = 30;
-		motor[RightWheels] = -30;
+		motor[LeftWheels] = 60;
+		motor[RightWheels] = -60;
 		break;
 	case DPAD_LEFT:
-		motor[LeftWheels] = -30;
-		motor[RightWheels] = 30;
+		motor[LeftWheels] = -60;
+		motor[RightWheels] = 60;
 		break;
 	case DPAD_TOP_RIGHT:
-		motor[LeftWheels] = 30;
+		motor[LeftWheels] = 50;
 		motor[RightWheels] = 0;
 		break;
 	case DPAD_BOTTOM_RIGHT:
-		motor[LeftWheels] = -30;
+		motor[LeftWheels] = -50;
 		motor[RightWheels] = 0;
 		break;
 	case DPAD_BOTTOM_LEFT:
 		motor[LeftWheels] = 0;
-		motor[RightWheels] = -30;
+		motor[RightWheels] = -50;
 		break;
 	case DPAD_TOP_LEFT:
 		motor[LeftWheels] = 0;
-		motor[RightWheels] = 30;
+		motor[RightWheels] = 50;
 		break;
 	default:
 		motor[LeftWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
@@ -199,7 +200,7 @@ void buttonFunctions()
 	grabBase();
 }
 
-void liftOverride(void)
+void liftOverride()
 {
 	if(BTN_LIFT_UP)
 	{
@@ -238,7 +239,7 @@ void liftOverride(void)
 	}
 }
 
-void spindleMove(void)
+void spindleMove()
 {
 	if(BTN_ROTATESPINDLE_FORWARD)
 	{
@@ -276,7 +277,7 @@ void spindleMove(void)
 	}
 }
 
-void gateControl(void)
+void gateControl()
 {
 	if(BTN_GATE_CTRL)
 	{
@@ -293,11 +294,21 @@ void gateControl(void)
 				GateState=Closed;
 			}
 			clearTimer(T3);
+
 		}
+
+		/*	servo[Gate]= GATE_OPEN;
+		}
+
+		if (BTN_GATE_CLOSED)
+		{
+		servo[Gate]= GATE_CLOSED;
+		}*/
+
 	}
 }
 
-void liftReach(void)
+void liftReach()
 {
 	if(BTN_LIFT_BASE)
 	{
@@ -320,7 +331,7 @@ void liftReach(void)
 	}
 }
 
-void grabBase(void)
+void grabBase()
 {
 	if(BTN_GRAB_GOALBASE)
 	{
