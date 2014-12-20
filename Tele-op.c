@@ -160,33 +160,33 @@ void wheelsMove ()
 		motor[LeftWheels] = -40;
 		motor[RightWheels] = -40;
 		break;
-	case DPAD_RIGHT:
+	case DPAD_LEFT:
 		motor[LeftWheels] = 60;
 		motor[RightWheels] = -60;
 		break;
-	case DPAD_LEFT:
+	case DPAD_RIGHT:
 		motor[LeftWheels] = -60;
 		motor[RightWheels] = 60;
 		break;
-	case DPAD_TOP_RIGHT:
+	case DPAD_TOP_LEFT:
 		motor[LeftWheels] = 50;
 		motor[RightWheels] = 0;
 		break;
-	case DPAD_BOTTOM_RIGHT:
+	case DPAD_BOTTOM_LEFT:
 		motor[LeftWheels] = -50;
 		motor[RightWheels] = 0;
 		break;
-	case DPAD_BOTTOM_LEFT:
+	case DPAD_BOTTOM_RIGHT:
 		motor[LeftWheels] = 0;
 		motor[RightWheels] = -50;
 		break;
-	case DPAD_TOP_LEFT:
+	case DPAD_TOP_RIGHT:
 		motor[LeftWheels] = 0;
 		motor[RightWheels] = 50;
 		break;
 	default:
-		motor[LeftWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
-		motor[RightWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100;
+		motor[RightWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
+		motor[LeftWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100;
 		break;
 	}
 }
