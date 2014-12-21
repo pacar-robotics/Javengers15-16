@@ -67,7 +67,7 @@ task main()
 	//kickstand();
 
 	dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
-	wait1Msec(10000);
+	wait1Msec(1000);
 	calcMove(50, 40, FORWARD);
 }
 
