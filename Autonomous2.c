@@ -246,92 +246,119 @@ void chooseProgram()
 	bool choicesConfirmed = false;
 	while(!choicesConfirmed)
 	{
+		wait1Msec(500); //need a half second delay to suppress multiple reads of the same key
 		eraseDisplay();
 		//choose frequency
 		//left button for 600, right button for 1200
-		displayTextLine(2, "Choose frequency:");
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
-		{ //keep going until left or right button pressed
-			if(nNxtButtonPressed == LEFT_BUTTON)
-			{
-				irChoice = 600;
-				irFrequency = IR600;
-			}//if 600
-			else if(nNxtButtonPressed == RIGHT_BUTTON)
-			{
-				irChoice = 1200;
-				irFrequency = IR1200;
-			}//else if 1200
-		}//while IR
+		displayTextLine(1, "Choose frequency:");
+		displayTextLine(2,"Left== 600");
+		displayTextLine(3,"Right==1200");
+
+		//ignore everything until left or right arrow pressed.
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+			//intentional
+		}
+
+		if(nNxtButtonPressed == LEFT_BUTTON){
+
+			irChoice = 600;
+			irFrequency = IR600;
+		}else if(nNxtButtonPressed == RIGHT_BUTTON)
+		{
+			irChoice = 1200;
+			irFrequency = IR1200;
+		}
+
+    wait1Msec(500);
 		eraseDisplay();
-		wait1Msec(1000);
+
 
 		//choose starting position
 		//left button for parking zone, right button for ramp
-		displayTextLine(2, "Starting Pos:");
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		displayTextLine(1, "Starting Pos:");
+		displayTextLine(2,"Left==PZ");
+		displayTextLine(3,"Right==Ramp");
+
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+			//intentional
+		}
+
+		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
-			if(nNxtButtonPressed == LEFT_BUTTON)
-			{
-				startingPositionChoice = "PZ";
-				startingPosition = PARKING_ZONE;
-			}//if pz
-			else if (nNxtButtonPressed == RIGHT_BUTTON)
-			{
-				startingPositionChoice = "Ramp";
-				startingPosition = RAMP;
-			}//else if ramp
-		}//while starting pos
+			startingPositionChoice = "PZ";
+			startingPosition = PARKING_ZONE;
+		}else if (nNxtButtonPressed == RIGHT_BUTTON)
+		{
+			startingPositionChoice = "Ramp";
+			startingPosition = RAMP;
+		}
+    wait1Msec(500);
 		eraseDisplay();
-		wait1Msec(1000);
+
 
 		//choose delay
 		//left button for yes, right button for no
-		displayTextLine(2, "Need delay?");
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		displayTextLine(1, "Need delay?");
+		displayTextline(2, "Left == Yes");
+		displayTextline(3, "Right== No");
+
+
+		//ignore everything except left or right arrow.
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+			//intentional
+		}
+		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
-			if(nNxtButtonPressed == LEFT_BUTTON)
-			{
-				delayChoice = "Yes";
-				isDelay = true;
-			}//if delay
-			else if (nNxtButtonPressed == RIGHT_BUTTON)
-			{
-				delayChoice = "None";
-				isDelay = false;
-			}//else if no delay
-		}//while delay
+			delayChoice = "Yes";
+			isDelay = true;
+		}//if delay
+		else if (nNxtButtonPressed == RIGHT_BUTTON)
+		{
+			delayChoice = "None";
+			isDelay = false;
+		}
+		wait1Msec(500);
 		eraseDisplay();
-		wait1Msec(1000);
+
 
 		//confirmation
-		displayTextLine(2, "Frequency: %d", irChoice);
-		displayTextLine(3, "Starting pos: %s", startingPositionChoice);
-		displayTextLine(4, "Delay: %s", delayChoice);
-		displayTextLine(5, "All correct?");
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		displayTextLine(1, "Freq: %d", irChoice);
+		displayTextLine(2, "Start pos: %s", startingPositionChoice);
+		displayTextLine(3, "Delay: %s", delayChoice);
+		displayTextLine(4, "Left == Correct");
+		displayTextLine(5, "Right == Redo");
+
+		//ignore everything except left and right arrows.
+
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+			//intentional
+		}
+
+		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
-			if(nNxtButtonPressed == LEFT_BUTTON)
-			{
 				//confirmed
 				choicesConfirmed = true;
-			}
-		}//while choices confirmed
+		}
 	}//!choices confirmed
+
+
+
+
 	if((startingPosition == RAMP) && isDelay)
 	{
-		rampDelay();
+	rampDelay();
 	}//ramp and delay
 	else if((startingPosition == RAMP) && !isDelay)
 	{
-		ramp();
+	ramp();
 	}//ramp and no delay
 	else if((startingPosition == PARKING_ZONE) && isDelay)
 	{
-		parkingZoneDelay();
+	parkingZoneDelay();
 	}//parking zone and delay
 	else if((startingPosition == PARKING_ZONE) && !isDelay)
 	{
-		parkingZone();
+	parkingZone();
 	}//parking zone and no delay
+
 }//end chooseProgram
