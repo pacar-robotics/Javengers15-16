@@ -25,9 +25,6 @@
 #define IR600 DSP_600
 #define IR1200 DSP_1200
 
-#define PARKING_ZONE 0
-#define RAMP 1
-
 //Buttons
 #define LEFT_BUTTON 2
 #define RIGHT_BUTTON 1
@@ -57,6 +54,10 @@
 
 #include "hitechnic-irseeker-v2.h"
 
+enum StartingPositionEnum {ParkingZone, Ramp};
+
+StartingPositionEnum StartingPosition;
+
 //Functions
 void chooseProgram();
 void ramp();
@@ -71,7 +72,6 @@ void grabGoalBase();
 void moveLift(int encoderCounts);
 
 tHTIRS2DSPMode irFrequency;
-int startingPosition;
 bool isDelay;
 
 enum LiftStateEnum {Running, Stopped};
@@ -88,6 +88,23 @@ task main()
 	chooseProgram();
 
 	//wait for start
+
+	if((StartingPosition== Ramp) && isDelay)
+	{
+	rampDelay();
+	}//ramp and delay
+	else if((StartingPosition== Ramp) && !isDelay)
+	{
+	ramp();
+	}//ramp and no delay
+	else if((StartingPosition== ParkingZone) && isDelay)
+	{
+	parkingZoneDelay();
+	}//parking zone and delay
+	else if((StartingPosition== ParkingZone) && !isDelay)
+	{
+	parkingZone();
+	}//parking zone and no delay
 }
 
 /* Functions */
@@ -139,7 +156,7 @@ void kickstand()
 {
 	tHTIRS2 irSeeker;
 	initSensor(&irSeeker, S2);
-irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
+	irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
 
 	dualMotorTurn(100, 40, CLOCKWISE);
 	calcMove(40, 40, FORWARD);
@@ -286,11 +303,11 @@ void chooseProgram()
 		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
 			startingPositionChoice = "PZ";
-			startingPosition = PARKING_ZONE;
+			StartingPosition = ParkingZone;
 		}else if (nNxtButtonPressed == RIGHT_BUTTON)
 		{
 			startingPositionChoice = "Ramp";
-			startingPosition = RAMP;
+			StartingPosition = Ramp;
 		}
     wait1Msec(500);
 		eraseDisplay();
@@ -299,8 +316,8 @@ void chooseProgram()
 		//choose delay
 		//left button for yes, right button for no
 		displayTextLine(1, "Need delay?");
-		displayTextline(2, "Left == Yes");
-		displayTextline(3, "Right== No");
+		displayTextLine(2, "Left == Yes");
+		displayTextLine(3, "Right== No");
 
 
 		//ignore everything except left or right arrow.
@@ -340,25 +357,4 @@ void chooseProgram()
 				choicesConfirmed = true;
 		}
 	}//!choices confirmed
-
-
-
-
-	if((startingPosition == RAMP) && isDelay)
-	{
-	rampDelay();
-	}//ramp and delay
-	else if((startingPosition == RAMP) && !isDelay)
-	{
-	ramp();
-	}//ramp and no delay
-	else if((startingPosition == PARKING_ZONE) && isDelay)
-	{
-	parkingZoneDelay();
-	}//parking zone and delay
-	else if((startingPosition == PARKING_ZONE) && !isDelay)
-	{
-	parkingZone();
-	}//parking zone and no delay
-
 }//end chooseProgram
