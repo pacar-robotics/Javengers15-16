@@ -1,4 +1,5 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Motor,  motorA,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorB,           ,             tmotorNXT, openLoop, encoder)
@@ -32,9 +33,9 @@
 #define RIGHT_BUTTON 1
 
 //Measurements
-#define DIAMETER 6.985
-#define TRACK_DISTANCE 19.304
-#define RAMP_DISTANCE 190
+#define DIAMETER 7.62
+#define TRACK_DISTANCE 48
+#define RAMP_DISTANCE 150
 
 //Directions
 #define FORWARD true
@@ -59,13 +60,15 @@
 
 #define DELAY_TIME 15000
 
+#define REGULATED true
+#define UNREGULATED false
+
 
 //Functions
 void chooseProgram();
 void rampFunction();
-void parkingZoneFunction();
 void initializeRobot();
-void calcMove(float centimeters, float power, bool direction);
+void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
 void kickstand();
 void moveLift(int encoderCounts);
@@ -102,7 +105,7 @@ task main()
 	}
 	else if(StartingPosition== ParkingZone)
 	{
-		parkingZoneFunction();
+		kickstand();
 	}
 }
 
@@ -115,31 +118,32 @@ void initializeRobot()
 	initSensor(&irSeeker, S2);
 	wait1Msec(1500);
 	// placeholder for chooseProgram
-	StartingPosition = ParkingZone;
+	StartingPosition = Ramp;
 	irFrequency =IR600;
 	isDelay = false;
 	// end for placeholders
-irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
+	irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
 }
 
 void rampFunction() //ramp, goals
 {
-	calcMove(RAMP_DISTANCE, 50, FORWARD);		//goes down ramp
-	calcMove(FOO, 50, FORWARD);			//goes to nearest goal (middle)
+	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
+	dualMotorTurn(3, 40, CLOCKWISE);
+	calcMove(60, 90, BACKWARD, REGULATED);
 	servo[Hooks] = GOAL_HOOKS_CLOSED;
-	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
-	servo[Gate]=GATE_OPEN;
-	wait1Msec(3000);
-	servo[Gate]=GATE_CLOSED;
-	moveLift(LIFT_BASE);
+	wait1Msec(300);
+	//moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
+	//servo[Gate]=GATE_OPEN;
+	//wait1Msec(3000);
+	//servo[Gate]=GATE_CLOSED;
+	//moveLift(LIFT_BASE);
+	dualMotorTurn(30, 40, CLOCKWISE);
+	calcMove(215, 90, FORWARD, REGULATED);
+	dualMotorTurn(205, 40, COUNTER_CLOCKWISE);
 	servo[Hooks] = GOAL_HOOKS_OPEN;
+	calcMove(250, 90, FORWARD, REGULATED);
+	dualMotorTurn(180, 40, CLOCKWISE);
 }
-
-void parkingZoneFunction() //parking zone, kickstand
-{
-	kickstand();
-}
-
 
 void kickstand()	//kicks kickstand
 {
@@ -147,25 +151,25 @@ void kickstand()	//kicks kickstand
 	switch(irSeeker.acDirection)
 	{
 	case 0:	//for position 1
-		calcMove(40, 50, FORWARD);
+		calcMove(40, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(60, 40, COUNTER_CLOCKWISE);
-		calcMove(105, 50, FORWARD);
+		calcMove(105, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(160, 40, CLOCKWISE);
-		calcMove(35, 60, FORWARD);
+		calcMove(35, 60, FORWARD, UNREGULATED);
 		dualMotorTurn(90, 40, CLOCKWISE);
 		break;
 	case 3:	//for position 2
-		calcMove(130, 50, FORWARD);
+		calcMove(130, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(75, 40, CLOCKWISE);
-		calcMove(5, 50, FORWARD);
+		calcMove(5, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(45, 70, CLOCKWISE);
 		break;
 	case 5:	//for position 3
-		calcMove(30, 50, FORWARD);
+		calcMove(30, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(50, 40, CLOCKWISE);
-		calcMove(60, 50, FORWARD);
+		calcMove(60, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(52, 40, COUNTER_CLOCKWISE);
-		calcMove(73, 50, FORWARD);
+		calcMove(73, 50, FORWARD, UNREGULATED);
 		dualMotorTurn(60, 40, CLOCKWISE);
 		break;
 	default:
@@ -208,49 +212,99 @@ void moveLift(int encoderCounts)
 	LiftState=Stopped;
 }
 
-void calcMove(float centimeters, float power, bool direction)
+void calcMove(float centimeters, float power, bool direction, bool isRegulated)
 {
 	float encoder_counts;
+
+	//set motors to PID control.
+
+	if(isRegulated)
+	{
+		nMotorPIDSpeedCtrl[LeftWheels]=mtrSpeedReg;
+		nMotorPIDSpeedCtrl[RightWheels]=mtrSpeedReg;
+	}
+	else
+	{
+		nMotorPIDSpeedCtrl[LeftWheels]=mtrNoReg;
+		nMotorPIDSpeedCtrl[RightWheels]=mtrNoReg;
+	}
+
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
-	encoder_counts = (centimeters/31.9024) * 1440; // converts centimeters to motor encoder counts
 
-	while(abs(nMotorEncoder[LeftWheels]) < abs(encoder_counts) || abs(nMotorEncoder[RightWheels]) < abs(encoder_counts))
+	encoder_counts = (centimeters/(DIAMETER*PI)) * 1440; // converts centimeters to motor encoder counts //
+
+	//check for direction.
+
+	if (!direction)
 	{
-		if (direction) // robot will move forward
-		{
-			motor[LeftWheels] = power;
-			motor[RightWheels] = power;
-		}
-		else // robot will move backward
-		{
-			motor[LeftWheels] = -1 * power;
-			motor[RightWheels] = -1 * power;
-		}
+		power = -1 * power;
+		encoder_counts = -1*encoder_counts;
 	}
+	//set the target encoder values before we set power to start motors.
+
+	nMotorEncoderTarget[LeftWheels]=encoder_counts;
+	nMotorEncoderTarget[RightWheels]=encoder_counts;
+
+	motor[LeftWheels]=power;
+	motor[RightWheels]=power;
+
+	while((nMotorRunState[LeftWheels]!=runStateIdle)&&(nMotorRunState[RightWheels]!=runStateIdle))
+	{
+		//do nothing while we wait for motors to spin to correct distance.
+	}
+
+	//stop the motors
+
+	motor[LeftWheels] = 0;
+	motor[RightWheels] = 0;
+
+
+	//set back to unregulated gmotors just so we dont have the wrong mode when exiting
+	nMotorPIDSpeedCtrl[LeftWheels]=mtrNoReg;
+	nMotorPIDSpeedCtrl[RightWheels]=mtrNoReg;
+
 }
 
 void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turns using both motors
 {
-	int encoderCounts = (TRACK_DISTANCE/DIAMETER*(robotDegrees*4))*2;
+	int encoderCounts = (TRACK_DISTANCE/DIAMETER)*robotDegrees*4;
+
+		//set motors to No PID control as differential turns have problems
+
+	nMotorPIDSpeedCtrl[LeftWheels]=mtrNoReg;
+	nMotorPIDSpeedCtrl[RightWheels]=mtrNoReg;
+
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
+
 	if (direction == COUNTER_CLOCKWISE)	//turns robot clockwise or counter-clockwise, depending on user input
 	{
+		nMotorEncoderTarget[LeftWheels]=encoderCounts;
+		nMotorEncoderTarget[RightWheels]=-1*encoderCounts;
 		motor[LeftWheels] = power;
 		motor[RightWheels] = -1 * power;
 	}
 	else
 	{
-		motor[LeftWheels] = -1* power;
+		nMotorEncoderTarget[LeftWheels]=-1*encoderCounts;
+		nMotorEncoderTarget[RightWheels]=encoderCounts;
+		motor[LeftWheels] = -1 * power;
 		motor[RightWheels] = power;
 	}
-	while((nMotorEncoder[LeftWheels]<abs(encoderCounts))&&(nMotorEncoder[RightWheels]<abs(encoderCounts)))
-	{
-		//
-	}
+		while((nMotorRunState[LeftWheels]!=runStateIdle)&&(nMotorRunState[RightWheels]!=runStateIdle)){
+  	//do nothing while we wait for motors to spin to correct angles.
+  }
+
+	//stop the motors
+
 	motor[LeftWheels] = 0;
 	motor[RightWheels] = 0;
+
+
+	//set back to unregulated gmotors just so we dont have the wrong mode when exiting
+	nMotorPIDSpeedCtrl[LeftWheels]=mtrNoReg;
+	nMotorPIDSpeedCtrl[RightWheels]=mtrNoReg;
 }
 
 void chooseProgram()
