@@ -63,9 +63,17 @@
 #define REGULATED true
 #define UNREGULATED false
 
+#define DATA_FILE_NAME "choices.txt"
+
+#define RAMP_START 1
+#define PARKING_ZONE 0
+
+#define NEED_DELAY 1
+#define NO_DELAY 0
+
 
 //Functions
-void chooseProgram();
+void readChoices();
 void rampFunction();
 void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
@@ -93,7 +101,8 @@ task main()
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
 
-	//chooseProgram();
+	readChoices();
+	irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
 	//waitForStart();
 	if(isDelay)
 	{
@@ -117,12 +126,7 @@ void initializeRobot()
 	servo[Hooks] = GOAL_HOOKS_OPEN;
 	initSensor(&irSeeker, S2);
 	wait1Msec(1500);
-	// placeholder for chooseProgram
-	StartingPosition = Ramp;
-	irFrequency =IR600;
-	isDelay = false;
-	// end for placeholders
-	irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
+
 }
 
 void rampFunction() //ramp, goals
@@ -151,26 +155,26 @@ void kickstand()	//kicks kickstand
 	switch(irSeeker.acDirection)
 	{
 	case 0:	//for position 1
-		calcMove(40, 50, FORWARD, UNREGULATED);
+		calcMove(40, 50, FORWARD, REGULATED);
 		dualMotorTurn(60, 40, COUNTER_CLOCKWISE);
-		calcMove(105, 50, FORWARD, UNREGULATED);
+		calcMove(105, 50, FORWARD, REGULATED);
 		dualMotorTurn(160, 40, CLOCKWISE);
-		calcMove(35, 60, FORWARD, UNREGULATED);
+		calcMove(35, 60, FORWARD, REGULATED);
 		dualMotorTurn(90, 40, CLOCKWISE);
 		break;
 	case 3:	//for position 2
-		calcMove(130, 50, FORWARD, UNREGULATED);
+		calcMove(130, 50, FORWARD, REGULATED);
 		dualMotorTurn(75, 40, CLOCKWISE);
-		calcMove(5, 50, FORWARD, UNREGULATED);
+		calcMove(5, 50, FORWARD, REGULATED);
 		dualMotorTurn(45, 70, CLOCKWISE);
 		break;
 	case 5:	//for position 3
-		calcMove(30, 50, FORWARD, UNREGULATED);
-		dualMotorTurn(50, 40, CLOCKWISE);
-		calcMove(60, 50, FORWARD, UNREGULATED);
-		dualMotorTurn(52, 40, COUNTER_CLOCKWISE);
-		calcMove(73, 50, FORWARD, UNREGULATED);
-		dualMotorTurn(60, 40, CLOCKWISE);
+		calcMove(30, 50, FORWARD, REGULATED);
+		dualMotorTurn(30, 40, CLOCKWISE);
+		calcMove(60, 50, FORWARD, REGULATED);
+		dualMotorTurn(32, 40, COUNTER_CLOCKWISE);
+		calcMove(67, 50, FORWARD, REGULATED);
+		dualMotorTurn(90, 40, CLOCKWISE);
 		break;
 	default:
 		// stub
@@ -306,110 +310,60 @@ void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turn
 	nMotorPIDSpeedCtrl[LeftWheels]=mtrNoReg;
 	nMotorPIDSpeedCtrl[RightWheels]=mtrNoReg;
 }
-
-void chooseProgram()
+void readChoices()
 {
-	int irChoice;
-	string startingPositionChoice;
-	string delayChoice;
-	bool choicesConfirmed = false;
-	while(!choicesConfirmed)
+	TFileIOResult nIoResult;
+	TFileHandle myFileHandle;
+	short myFileSize = 10;
+	short irChoice;
+	short startingPositionShort;
+	short delayShort;
+
+	OpenRead(myFileHandle, nIoResult, DATA_FILE_NAME, myFileSize);
+	if(nIoResult)
 	{
-		wait1Msec(500); //need a half second delay to suppress multiple reads of the same key
-		eraseDisplay();
-		//choose frequency
-		//left button for 600, right button for 1200
-		displayTextLine(1, "Choose frequency:");
-		displayTextLine(2,"Left== 600");
-		displayTextLine(3,"Right==1200");
+		//error in opening file for read
+		//need back up plan
+		playTone(5000, 5);
+	  stopAllTasks();
+	}
+	ReadShort(myFileHandle, nIoResult, irChoice);
+	ReadShort(myFileHandle, nIoResult, startingPositionShort);
+	ReadShort(myFileHandle, nIoResult, delayShort);
+	Close(myFileHandle, nIoResult);
 
-		//ignore everything until left or right arrow pressed.
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
-			//intentional
-		}
+	if(irChoice == 1200)
+	{
+		irFrequency = IR1200;
+	}
+	else
+	{
+		irFrequency = IR600;
+	}
+	if(startingPositionShort == RAMP_START)
+	{
+		StartingPosition = Ramp;
+	}
+	else
+	{
+		StartingPosition = ParkingZone;
+	}
+	if(delayShort == NEED_DELAY)
+	{
+		isDelay = true;
+	}
+	else
+	{
+		isDelay = false;
+	}
+	eraseDisplay();
+	displayTextLine(1, "Freq:%d", irChoice);
+	displayTextLine(2, "Start:%s", (startingPositionShort == RAMP_START ? "Ramp" : "PZ"));
+	displayTextLine(3, "Delay:%s", (delayShort == NEED_DELAY ? "Yes" : "No"));
+	wait1Msec(5000);
+	eraseDisplay();
+}
 
-		if(nNxtButtonPressed == LEFT_BUTTON){
-
-			irChoice = 600;
-			irFrequency = IR600;
-		}else if(nNxtButtonPressed == RIGHT_BUTTON)
-		{
-			irChoice = 1200;
-			irFrequency = IR1200;
-		}
-
-		wait1Msec(500);
-		eraseDisplay();
-
-
-		//choose starting position
-		//left button for parking zone, right button for ramp
-		displayTextLine(1, "Starting Pos:");
-		displayTextLine(2,"Left==PZ");
-		displayTextLine(3,"Right==Ramp");
-
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
-			//intentional
-		}
-
-		if(nNxtButtonPressed == LEFT_BUTTON)
-		{
-			startingPositionChoice = "PZ";
-			StartingPosition = ParkingZone;
-		}else if (nNxtButtonPressed == RIGHT_BUTTON)
-		{
-			startingPositionChoice = "Ramp";
-			StartingPosition = Ramp;
-		}
-		wait1Msec(500);
-		eraseDisplay();
-
-
-		//choose delay
-		//left button for yes, right button for no
-		displayTextLine(1, "Need delay?");
-		displayTextLine(2, "Left == Yes");
-		displayTextLine(3, "Right== No");
-
-
-		//ignore everything except left or right arrow.
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
-			//intentional
-		}
-		if(nNxtButtonPressed == LEFT_BUTTON)
-		{
-			delayChoice = "Yes";
-			isDelay = true;
-		}//if delay
-		else if (nNxtButtonPressed == RIGHT_BUTTON)
-		{
-			delayChoice = "None";
-			isDelay = false;
-		}
-		wait1Msec(500);
-		eraseDisplay();
-
-
-		//confirmation
-		displayTextLine(1, "Freq: %d", irChoice);
-		displayTextLine(2, "Start pos: %s", startingPositionChoice);
-		displayTextLine(3, "Delay: %s", delayChoice);
-		displayTextLine(4, "Left == Correct");
-		displayTextLine(5, "Right == Redo");
-
-		//ignore everything except left and right arrows.
-
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
-			//intentional
-		}
-
-		if(nNxtButtonPressed == LEFT_BUTTON)
-		{
-			//confirmed
-			choicesConfirmed = true;
-		}
-	}//!choices confirmed
-}//end chooseProgram
 
 
 void displayIRBeaconValues()
