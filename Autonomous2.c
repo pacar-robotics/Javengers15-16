@@ -59,11 +59,6 @@
 
 #define DELAY_TIME 15000
 
-tHTIRS2 irSeeker;
-
-enum StartingPositionEnum {ParkingZone, Ramp};
-
-StartingPositionEnum StartingPosition;
 
 //Functions
 void chooseProgram();
@@ -76,11 +71,16 @@ void kickstand();
 void moveLift(int encoderCounts);
 void displayIRBeaconValues();
 
+//for irSeeker
+tHTIRS2 irSeeker;
 tHTIRS2DSPMode irFrequency;
+
 bool isDelay;
 
+enum StartingPositionEnum {ParkingZone, Ramp};
 enum LiftStateEnum {Running, Stopped};
 
+StartingPositionEnum StartingPosition;
 LiftStateEnum LiftState;
 
 task main()
@@ -108,6 +108,20 @@ task main()
 
 /* Functions */
 
+void initializeRobot()
+{
+	servo[Gate] = GATE_CLOSED;
+	servo[Hooks] = GOAL_HOOKS_OPEN;
+	initSensor(&irSeeker, S2);
+	wait1Msec(1500);
+	// placeholder for chooseProgram
+	StartingPosition = ParkingZone;
+	irFrequency =IR600;
+	isDelay = false;
+	// end for placeholders
+irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
+}
+
 void rampFunction() //ramp, goals
 {
 	calcMove(RAMP_DISTANCE, 50, FORWARD);		//goes down ramp
@@ -127,22 +141,36 @@ void parkingZoneFunction() //parking zone, kickstand
 }
 
 
-void kickstand()
+void kickstand()	//kicks kickstand
 {
 	readSensor(&irSeeker);
 	switch(irSeeker.acDirection)
 	{
-		case 0:
-			calcMove(40, 50, FORWARD);
-			dualMotorTurn(60, 40, COUNTER_CLOCKWISE);
-			calcMove(80, 50, FORWARD);
-			dualMotorTurn(160, 40, CLOCKWISE);
-			calcMove(40, 60, FORWARD);
-			break;
-			// more below
-		default:
-			// stub
-			break;
+	case 0:	//for position 1
+		calcMove(40, 50, FORWARD);
+		dualMotorTurn(60, 40, COUNTER_CLOCKWISE);
+		calcMove(105, 50, FORWARD);
+		dualMotorTurn(160, 40, CLOCKWISE);
+		calcMove(35, 60, FORWARD);
+		dualMotorTurn(90, 40, CLOCKWISE);
+		break;
+	case 3:	//for position 2
+		calcMove(130, 50, FORWARD);
+		dualMotorTurn(75, 40, CLOCKWISE);
+		calcMove(5, 50, FORWARD);
+		dualMotorTurn(45, 70, CLOCKWISE);
+		break;
+	case 5:	//for position 3
+		calcMove(30, 50, FORWARD);
+		dualMotorTurn(50, 40, CLOCKWISE);
+		calcMove(60, 50, FORWARD);
+		dualMotorTurn(52, 40, COUNTER_CLOCKWISE);
+		calcMove(73, 50, FORWARD);
+		dualMotorTurn(60, 40, CLOCKWISE);
+		break;
+	default:
+		// stub
+		break;
 	}
 }
 
@@ -183,10 +211,11 @@ void moveLift(int encoderCounts)
 void calcMove(float centimeters, float power, bool direction)
 {
 	float encoder_counts;
-
+	nMotorEncoder[LeftWheels] = 0;
+	nMotorEncoder[RightWheels] = 0;
 	encoder_counts = (centimeters/31.9024) * 1440; // converts centimeters to motor encoder counts
 
-	while(nMotorEncoder[LeftWheels] < abs(encoder_counts) || nMotorEncoder[RightWheels] < abs(encoder_counts))
+	while(abs(nMotorEncoder[LeftWheels]) < abs(encoder_counts) || abs(nMotorEncoder[RightWheels]) < abs(encoder_counts))
 	{
 		if (direction) // robot will move forward
 		{
@@ -200,7 +229,6 @@ void calcMove(float centimeters, float power, bool direction)
 		}
 	}
 }
-
 
 void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turns using both motors
 {
@@ -223,20 +251,6 @@ void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turn
 	}
 	motor[LeftWheels] = 0;
 	motor[RightWheels] = 0;
-}
-
-void initializeRobot()
-{
-	servo[Gate] = GATE_CLOSED;
-	servo[Hooks] = GOAL_HOOKS_OPEN;
-	initSensor(&irSeeker, S2);
-	wait1Msec(1500);
-	// placeholder for chooseProgram
-	StartingPosition = ParkingZone;
-	irFrequency =IR600;
-	isDelay = false;
-	// end for placeholders
-	irSeeker.mode = (irFrequency == IR600 ? DSP_600: DSP_1200);
 }
 
 void chooseProgram()
