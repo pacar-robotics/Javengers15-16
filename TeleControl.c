@@ -1,6 +1,6 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
+#pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
 #pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
@@ -23,10 +23,10 @@
 #define GOAL_CLAW_CLOSED 180
 
 //lift positions
-#define LIFT_LIMIT 22300
-#define LIFT_TOP 22250
-#define LIFT_MIDDLE 14350
-#define LIFT_LOWER 7150
+#define LIFT_LIMIT 10000
+#define LIFT_TOP 9950
+#define LIFT_MIDDLE 6700
+#define LIFT_LOWER 3300
 #define LIFT_BASE 0
 
 //controller button definitions
@@ -47,7 +47,11 @@
 
 enum SpindleStateEnumeration {Running,Stopped};
 enum LiftStateEnumeration  {Running, Stopped};
+enum HoldingStateEnumeration {Hold, Free};
 
+int TargetPosition =0;
+
+enum HoldingStateEnumeration HoldingState = Free;
 
 SpindleStateEnumeration SpindleState;
 LiftStateEnumeration LiftState;
@@ -84,7 +88,7 @@ void initializeRobot()
   // Sensors are automatically configured and setup by ROBOTC. They may need a brief time to stabilize.
 
   servo[Gate]=GATE_CLOSED;
-  servo[GoalClaw]=GOAL_CLAW_CLOSED;
+  servo[GoalClaw]=GOAL_CLAW_OPEN;
 
   SpindleState=Stopped;
   LiftState=Stopped;
@@ -125,7 +129,11 @@ void initializeRobot()
 
 task LiftSafetyUpperLimitWatch();
 task LiftSafetyLowerLimitWatch();
+task LiftSafetyLimitTouchWatch();
+task HoldPosition();
+
 void MoveLiftToPosition(int EncoderValue);
+
 
 task main()
 {
@@ -146,6 +154,9 @@ task main()
 
   startTask(LiftSafetyUpperLimitWatch);
   startTask(LiftSafetyLowerLimitWatch);
+  startTask(LiftSafetyLimitTouchWatch);
+  HoldingState=Free;
+  startTask(HoldPosition);
 
   while(true)                            // Infinite loop:
   {
@@ -154,6 +165,7 @@ task main()
     //lift up
 
     if(BTN_LIFT_UP){
+    	HoldingState=Free;
     	//check to see if button is not being read too fast
     	if(time1[T2]>500){
     		if((LiftState==Stopped)){
@@ -181,6 +193,7 @@ task main()
 
     if(BTN_LIFT_DOWN){
     	//check to see if button is not being read too fast
+    	HoldingState=Free;
     	if(time1[T2]>500){
     		if((LiftState==Stopped)){
     			//check to see if the lift is already at limit
@@ -352,9 +365,29 @@ task LiftSafetyLowerLimitWatch(){
 	}
 
 }
+task LiftSafetyLimitTouchWatch(){
+	while(1){
+		if(SensorValue[LiftLimitTouch]!=0){
+			playTone(5000,5);
+			//stop the lift
+			motor[Lift]=0;
+			//move the lift back down to the limit.
+			while(nMotorEncoder[Lift]>LIFT_LIMIT){
+				motor[Lift]=-10;
+				LiftState=Running;
+			}
+			//now stop the motor again.
+			motor[Lift]=0;
+			LiftState=Stopped;
+		}
+	}
+
+}
+
 
 void MoveLiftToPosition(int EncoderValue)
 {
+   HoldingState=Free;
 
 	//Now check where we need to be compared to where we are
 	if(nMotorEncoder[Lift]>EncoderValue){
@@ -392,4 +425,20 @@ void MoveLiftToPosition(int EncoderValue)
 	//stop the motor
 	motor[Lift]=0;
 	LiftState=Stopped;
+	TargetPosition=EncoderValue;
+	HoldingState=Hold;
+}
+
+task HoldPosition()
+{
+	while(1){
+		if(HoldingState==Hold){
+			if(nMotorEncoder[Lift]>TargetPosition){
+				motor[Lift]=-5;
+			}
+			if(nMotorEncoder[Lift]<TargetPosition){
+				motor[Lift]=5;
+			}
+		}
+	}
 }
