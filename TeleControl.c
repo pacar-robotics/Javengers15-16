@@ -1,9 +1,10 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
-#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, PIDControl, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, PIDControl, reversed, encoder)
 #pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
@@ -15,19 +16,20 @@
 
 //definitions that help readability of the program
 
-#define GATE_CLOSED 50
+#define GATE_CLOSED 70
 #define GATE_OPEN 150
 
 //Goal Finger Positions
 #define GOAL_CLAW_OPEN 10
 #define GOAL_CLAW_CLOSED 180
 
-//lift positions
-#define LIFT_LIMIT 10000
-#define LIFT_TOP 9950
-#define LIFT_MIDDLE 6700
-#define LIFT_LOWER 3300
+//lift related
+#define LIFT_LIMIT 10800
+#define LIFT_TOP 10750
+#define LIFT_MIDDLE 7100
+#define LIFT_LOWER 3600
 #define LIFT_BASE 0
+#define LIFT_HOLD_POSITION_POWER 5
 
 //controller button definitions
 
@@ -47,11 +49,11 @@
 
 enum SpindleStateEnumeration {Running,Stopped};
 enum LiftStateEnumeration  {Running, Stopped};
-enum HoldingStateEnumeration {Hold, Free};
+
 
 int TargetPosition =0;
+int CurrentPosition=0;
 
-enum HoldingStateEnumeration HoldingState = Free;
 
 SpindleStateEnumeration SpindleState;
 LiftStateEnumeration LiftState;
@@ -155,8 +157,7 @@ task main()
   startTask(LiftSafetyUpperLimitWatch);
   startTask(LiftSafetyLowerLimitWatch);
   startTask(LiftSafetyLimitTouchWatch);
-  HoldingState=Free;
-  startTask(HoldPosition);
+  //startTask(HoldPosition);
 
   while(true)                            // Infinite loop:
   {
@@ -165,7 +166,7 @@ task main()
     //lift up
 
     if(BTN_LIFT_UP){
-    	HoldingState=Free;
+    	stopTask(HoldPosition);
     	//check to see if button is not being read too fast
     	if(time1[T2]>500){
     		if((LiftState==Stopped)){
@@ -181,6 +182,7 @@ task main()
     		//stop the Lift
     			motor[Lift]=0;
     			LiftState=Stopped;
+    			startTask(HoldPosition);
     		//restart timer for button press for Lift
     			clearTimer(T2);
     		}
@@ -193,7 +195,7 @@ task main()
 
     if(BTN_LIFT_DOWN){
     	//check to see if button is not being read too fast
-    	HoldingState=Free;
+    	stopTask(HoldPosition);
     	if(time1[T2]>500){
     		if((LiftState==Stopped)){
     			//check to see if the lift is already at limit
@@ -208,6 +210,7 @@ task main()
     		//stop the Lift
     			motor[Lift]=0;
     			LiftState=Stopped;
+    			startTask(HoldPosition);
     		//restart timer for button press for Lift
     			clearTimer(T2);
     		}
@@ -304,7 +307,8 @@ task main()
     if(abs(joystick.joy1_y1) > threshold)   // If the right analog stick's Y-axis readings are either above or below the threshold:
     {
 
-    			motor[RightWheels] = joystick.joy1_y1;
+    			motor[RightWheels] = 0.25*joystick.joy1_y1;
+    			//fine motor control (1/4th the speed)
 
               // Motor RightWheels is assigned a power level equal to the right analog stick's Y-axis reading.
     }
@@ -317,7 +321,8 @@ task main()
 	if(abs(joystick.joy1_y2) > threshold)   // If the left analog stick's Y-axis readings are either above or below the threshold:
     {
 
-    			motor[LeftWheels] = joystick.joy1_y2;
+    			motor[LeftWheels] = 0.25*joystick.joy1_y2;
+    			//fine motor control
 
               // Motor LeftWheels is assigned a power level equal to the left analog stick's Y-axis reading.
     }
@@ -387,36 +392,52 @@ task LiftSafetyLimitTouchWatch(){
 
 void MoveLiftToPosition(int EncoderValue)
 {
-   HoldingState=Free;
+	 nMotorPIDSpeedCtrl[Lift]=mtrSpeedReg;
+	 CurrentPosition=nMotorEncoder[Lift];
 
-	//Now check where we need to be compared to where we are
+	 //release the Hold Position task, to allow movement
+   stopTask(HoldPosition);
+
+   //close the gate, to ensure the safety of motion of the lift
+
+   servo[Gate]=GATE_CLOSED;
+
+	//Now check if we need to travel up or down.
 	if(nMotorEncoder[Lift]>EncoderValue){
 		//we need to move down
 
 
+	  //check if we are travelling below the lower goal, special handling, until counterweight deployed.
 		LiftState=Running;
-		motor[Lift]=-60;
+		nMotorEncoderTarget[Lift]=(CurrentPosition-EncoderValue);
+		motor[Lift]=-75;
 
-		while((nMotorEncoder[Lift]>EncoderValue)&&(nMotorEncoder[Lift]>LIFT_LOWER)){
-			//let the motor lift run until EncoderValue becomes larger than the target or we reach the last segment down
+
+
+		while((nMotorRunState[Lift]!=runStateIdle)&&(nMotorEncoder[Lift]>=LIFT_LOWER)){
+			//let the motor lift run until motor becomes idle on reaching target or we reach the last segment down
 		  //if we reach the last segment down we want to slow down.
 		}
 
 		if(nMotorEncoder[Lift]>EncoderValue){
+			CurrentPosition=nMotorEncoder[Lift];
 			//we are now below the height of the lower base and need to slow down to let the last segment fall slowly
 			//This should only execute when the target is the base of the lift
+			nMotorEncoderTarget[Lift]=(CurrentPosition-EncoderValue);
 			motor[Lift]=-20;
-			while(nMotorEncoder[Lift]>EncoderValue){
-					//let the motor lift run until EncoderValue becomes larger than the target
+			while(nMotorRunState[Lift]!=runStateIdle){
+					//let the motor reach the target
 			}
 		}
 
 	}else if(nMotorEncoder[Lift]<EncoderValue){
 		//we need to move up
-		motor[Lift]=80;
+
+		nMotorEncoderTarget[Lift]=(EncoderValue-CurrentPosition);
+		motor[Lift]=95;
 		LiftState=Running;
-		while(nMotorEncoder[Lift]<EncoderValue){
-			//let the motor run until EncoderValue becomes lower than the target
+		while(nMotorRunState[Lift]!=runStateIdle){
+			//let the motor run till it reaches target
 		}
 
 	}
@@ -426,19 +447,24 @@ void MoveLiftToPosition(int EncoderValue)
 	motor[Lift]=0;
 	LiftState=Stopped;
 	TargetPosition=EncoderValue;
-	HoldingState=Hold;
+	if(EncoderValue!=LIFT_BASE){
+		//if it is at lift base we dont need to hold position as it will be supported already
+	  //otherwise we lock on to the position
+		startTask(HoldPosition);
+	}else{
+		//not needed, just caution
+		stopTask(HoldPosition);
+	}
 }
 
 task HoldPosition()
 {
 	while(1){
-		if(HoldingState==Hold){
-			if(nMotorEncoder[Lift]>TargetPosition){
-				motor[Lift]=-5;
-			}
-			if(nMotorEncoder[Lift]<TargetPosition){
-				motor[Lift]=5;
-			}
+		if(nMotorEncoder[Lift]>TargetPosition){
+			motor[Lift]=-1*LIFT_HOLD_POSITION_POWER;
+		}
+		if(nMotorEncoder[Lift]<TargetPosition){
+			motor[Lift]=LIFT_HOLD_POSITION_POWER;
 		}
 	}
 }
