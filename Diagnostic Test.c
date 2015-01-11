@@ -37,8 +37,31 @@ void testHookServo();
 void testIRBeacon();
 void testLiftLimitSensor();
 
+//Touch Sensor Values (may need to change)
+#define TOUCH_SENSOR_PRESSED 1
+#define TOUCH_SENSOR_NOT_PRESSED 0
+
+/*
+ 1. Check Primary Battery and External Battery Voltage (We know it can be done because these are shown during the run.
+ 2. Check DC Motors. Check Encoders.
+ 3. Check Servo Motors. Check Servo Position Change.
+ 4. Check Touch Sensor (wait for it to be pressed and confirm).
+ 5. Check Spindle turn.
+*/
+
 task main()
 {
+<<<<<<< HEAD
+=======
+	bool hasErrors = false;
+	/*bool leftWheelsError = false;
+	bool rightWheelsError = false;
+	bool liftError = false;
+	bool spindleError = false;
+	bool hooksError = false;
+	bool gateError = false;
+	bool touchSensorError = false;*/
+>>>>>>> origin/autonomous-dev
 
 
 	testNXTBattery();
@@ -145,23 +168,40 @@ void testWheelMotors()
 
 	// test LeftWheels
 
+<<<<<<< HEAD
 	displayTextLine(1, "Testing Left Wheels ...");
 	wait1Msec(1000);
+=======
+	displayTextLine(1, "Current Battery Level:%f", nImmediateBatteryLevel); //in millivolts
+	displayTextLine(2, "External Battery Voltage:%f", externalBattery);
+	wait1Msec(500);
+
+	eraseDisplay();
+>>>>>>> origin/autonomous-dev
 
 	motor[LeftWheels] = 20;
 	wait1Msec(500);
 	motor[LeftWheels] = 0;
 
-	if (nMotorEncoder[LeftWheels] == 0)
+	if(nMotorEncoder[LeftWheels] == 0)
 	{
 		// either motor or encoder is faulty
 
 		hasErrors = true;
+<<<<<<< HEAD
 		displayTextLine(3, "Left wheels error !!!...");
 		playTone(100, 5);		//wait for acknowledgement
 		waitForButtonPress();
 
+=======
+		//leftWheelsError = true;
+		displayTextLine(2, "Left wheels error");
+		playTone(100, 5);
+		wait1Msec(2000);
+>>>>>>> origin/autonomous-dev
 	}
+
+
 	eraseDisplay();
 
 	// test RightWheels
@@ -178,15 +218,24 @@ void testWheelMotors()
 		// either motor or encoder is faulty
 
 		hasErrors = true;
+<<<<<<< HEAD
 		displayTextLine(3, "Right wheels error....");
+=======
+		//rightWheelsError = true;
+		displayTextLine(2, "Right wheels error");
+>>>>>>> origin/autonomous-dev
 		playTone(500, 5);
 		//wait for acknowledgement
 		waitForButtonPress();
 	}
+<<<<<<< HEAD
 }
 
 void testLiftMotor()
 {
+=======
+
+>>>>>>> origin/autonomous-dev
 	eraseDisplay();
 
 	motor[Lift]=0;
@@ -207,7 +256,12 @@ void testLiftMotor()
 		// either motor or encoder is faulty
 
 		hasErrors = true;
+<<<<<<< HEAD
 		displayTextLine(3, "Lift error....");
+=======
+		//liftError = true;
+		displayTextLine(2, "Lift error");
+>>>>>>> origin/autonomous-dev
 		playTone(1000, 5);
 		//wait for acknowledgement
 		waitForButtonPress();
@@ -221,10 +275,13 @@ void testLiftMotor()
 
 	}
 
+<<<<<<< HEAD
 }
 
 void testSpindleMotor()
 {
+=======
+>>>>>>> origin/autonomous-dev
 	eraseDisplay();
 
 	// test Spindle
@@ -236,6 +293,7 @@ void testSpindleMotor()
 	displayTextLine(2, "Conf Spindle Turn..");
 
 	motor[Spindle] = 20;
+	displayTextLine(1, "Testing Spindle");
 	wait1Msec(500);
 	motor[Spindle] = 0;
 	//wait for acknowledgement
@@ -252,8 +310,29 @@ void testHookServo()
 	servo[Hooks]=GOAL_HOOKS_OPEN;
 
 
+	if(motor[Spindle] == 0)
+	{
+		// either motor or encoder is faulty
+
+		hasErrors = true;
+		//spindleError = true;
+		displayTextLine(2, "Spindle error");
+		playTone(1000, 5);
+		wait1Msec(2000);
+	}
+	else
+	{
+		motor[Spindle] = -20;
+		wait1Msec(500);
+		motor[Spindle] = 0;
+		wait1Msec(2000);
+	}
+
+	eraseDisplay();
+
 	// test Hooks
 
+<<<<<<< HEAD
 	displayTextLine(1, "Testing Goal Hooks...");
 	wait1Msec(1000);
 	displayTextLine(2, "Conf GoalHook Close..");
@@ -270,11 +349,33 @@ void testHookServo()
 
 void testGateServo()
 {
+=======
+	servo[Hooks] = 180;
+	displayTextLine(1, "Testing Hooks");
+	wait1Msec(1000);
+
+	if(servo[Hooks] == 0) //current servo position
+	{
+		hasErrors = true;
+		//hooksError = true;
+		displayTextLine(2, "Hooks error");
+		playTone(600, 5);
+		wait1Msec(2000);
+	}
+	else
+	{
+		servo[Hooks] = 10;
+		wait1Msec(2000);
+	}
+
+	eraseDisplay();
+>>>>>>> origin/autonomous-dev
 
 	eraseDisplay();
 	// test Gate
 	//set servos to starting position
 
+<<<<<<< HEAD
 	servo[Gate]=GATE_CLOSED;
 
 
@@ -304,6 +405,48 @@ void testIRBeacon()
 	initSensor(&irSeeker, S2);
 	wait1Msec(1000);
 	irSeeker.mode=DSP_1200;
+=======
+	displayTextLine(1, "Testing Gate");
+	servo[Gate] = 50;
+	wait1Msec(1000);
+
+	if(servo[Gate] == 0)
+	{
+		hasErrors = true;
+		//gateError = true;
+		displayTextLine(2, "Gate errors");
+		playTone(700, 5);
+		wait1Msec(2000);
+	}
+	else
+	{
+		servo[Gate] = 70;
+		wait1Msec(1000);
+	}
+
+	eraseDisplay();
+
+	while(SensorValue[LiftLimitTouch] == TOUCH_SENSOR_NOT_PRESSED)
+	{
+		motor[Lift] = 20;
+		displayTextLine(1, "Testing Touch Sensor");
+	}
+	if(SensorValue[LiftLimitTouch] == TOUCH_SENSOR_PRESSED)
+	{
+		displayTextLine(2, "Touch sensor pressed");
+		motor[Lift] = -20;
+		wait1Msec(2000);
+	}
+	else
+	{
+		hasErrors = true;
+		//touchSensorError = true;
+		displayTextLine(2, "Touch sensor error");
+		wait1Msec(2000);
+	}
+
+	eraseDisplay();
+>>>>>>> origin/autonomous-dev
 
 	displayTextLine(2, "Set IRBeacon=1200");
 	displayTextLine(3, "Hold IRB in front");
@@ -330,6 +473,7 @@ void testIRBeacon()
 
 }
 
+<<<<<<< HEAD
 void testLiftLimitSensor()
 {
 
@@ -366,5 +510,10 @@ void waitForButtonPress()
 	}
 	//absorbing button press buffer persistence
 	wait1Msec(1000);
+=======
+
+	playTone(3000, 5);
+	wait1Msec(5000);
+>>>>>>> origin/autonomous-dev
 
 }
