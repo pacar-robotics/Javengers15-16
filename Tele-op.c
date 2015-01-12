@@ -77,7 +77,7 @@
 #define GOAL_HOOKS_OPEN 10
 #define GOAL_HOOKS_CLOSED 180
 
-#define JOYSTICK_THRESHOLD 10
+#define JOYSTICK_THRESHOLD 10 // Threshold for Joysticks, so it doesn't move
 
 enum SpindleStateEnum {Running, Stopped};
 enum LiftStateEnum {Running, Stopped};
@@ -125,12 +125,12 @@ task main()
 
 void initializeRobot ()
 {
-	LiftState=Stopped;
-	servo[Gate]= GATE_CLOSED;
+	LiftState = Stopped;
+	servo[Gate] = GATE_CLOSED;
 	servo[Hooks] = GOAL_HOOKS_OPEN;
-	GateState=Closed;
-	SpindleState= Stopped;
-
+	GateState = Closed;
+	SpindleState = Stopped;
+	ChooseDriver = MainDriver;
 }
 
 void clrTimers()
@@ -366,20 +366,29 @@ void processControls()
 			powerFactor = 1;
 		}
 
-		if(CTRL1_JOY_LEFT_Y >= JOYSTICK_THRESHOLD)
+		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
 			motor[LeftWheels] = CTRL1_JOY_LEFT_Y * powerFactor;
 		}
-		if(CTRL1_JOY_RIGHT_Y >= JOYSTICK_THRESHOLD)
+		else
+		{
+			motor[LeftWheels] = 0;
+		}
+
+		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
 			motor[RightWheels] = CTRL1_JOY_RIGHT_Y * powerFactor;
+		}
+		else
+		{
+			motor[RightWheels] = 0;
 		}
 
 		switch (CTRL1_DPAD)
 		{
 			case DPAD_TOP:
-				motor[LeftWheels] = 80 * powerFactor;
-				motor[RightWheels] = 80 * powerFactor;
+				motor[LeftWheels] = 60 * powerFactor;
+				motor[RightWheels] = 60 * powerFactor;
 				break;
 			case DPAD_BOTTOM:
 				motor[LeftWheels] = -80 * powerFactor;
@@ -414,14 +423,24 @@ void processControls()
 	else if(ChooseDriver == Scorer)
 	{
 		powerFactor = .125;
-		if(CTRL2_JOY_LEFT_Y >= JOYSTICK_THRESHOLD)
+		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
 			motor[LeftWheels] = CTRL2_JOY_LEFT_Y * powerFactor;
 		}
-		if(CTRL2_JOY_RIGHT_Y >= JOYSTICK_THRESHOLD)
+		else
+		{
+			motor[LeftWheels] = 0;
+		}
+
+		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
 			motor[RightWheels] = CTRL2_JOY_RIGHT_Y * powerFactor;
 		}
+		else
+		{
+			motor[RightWheels] = 0;
+		}
+
 		switch (CTRL2_DPAD)
 		{
 			case DPAD_TOP:
