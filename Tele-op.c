@@ -49,8 +49,9 @@
 #define CTRL2_JOY_RIGHT_Y	joystick.joy2_y2
 
 // Controllers' D-Pads.
-#define CTRL1_DPAD joystick.joy1_TopHat
-// add ctrl 2 dpad
+#define CTRL1_DPAD joystick.joy1_TopHat // Controller 1 Directional Pad
+#define CTRL2_DPAD joystick.joy2_TopHat // Controller 2 D-Pad
+// D-Pad possible positions
 #define DPAD_TOP 0
 #define DPAD_TOP_RIGHT 1
 #define DPAD_RIGHT 2
@@ -76,10 +77,12 @@
 #define GOAL_HOOKS_OPEN 10
 #define GOAL_HOOKS_CLOSED 180
 
+#define JOYSTICK_THRESHOLD 10
+
 enum SpindleStateEnum {Running, Stopped};
 enum LiftStateEnum {Running, Stopped};
 enum GateStateEnum {Open, Closed};
-enum ChooseDriverEnum {Driver, Scorer};
+enum ChooseDriverEnum {MainDriver, Scorer};
 
 SpindleStateEnum SpindleState;
 LiftStateEnum LiftState;
@@ -94,21 +97,14 @@ task HoldPosition();
 
 void initializeRobot();
 void clrTimers();
-void wheelsMove();
-void buttonFunctions(); // Has uses for buttons
-
-// Secondary functions
-void liftOverride();
-void spindleMove();
-void gateControl();
-void liftReach();
-void grabBase();
+void processControls(); // Has uses for buttons
 
 // Tertiary functions
 void moveLift(int encoderCounts);
 
 int TargetPosition = 0;
 int CurrentPosition = 0;
+int powerFactor;
 
 task main()
 {
@@ -123,8 +119,7 @@ task main()
 	while (1)
 	{
 		getJoystickSettings(joystick);
-		wheelsMove();
-		buttonFunctions();
+		processControls();
 	}
 }
 
@@ -151,7 +146,10 @@ task liftCheckMAX ()
 	if (nMotorEncoder[Lift] > LIFT_MAX)
 	{
 		while (nMotorEncoder[Lift] > LIFT_MAX)
+		{
 			motor[Lift] = -20; // Might have to change values...
+		}
+
 		motor[Lift] = 0;
 	}
 }
@@ -161,26 +159,32 @@ task liftCheckMIN()
 	if (nMotorEncoder[Lift] < LIFT_BASE)
 	{
 		while (nMotorEncoder[Lift] < LIFT_BASE)
+		{
 			motor[Lift] = 20; // Might have to change values...
+		}
+
 		motor[Lift] = 0;
 	}
 }
 
 task checkLiftTouch()
 {
-	while(1)
+	while(true)
 	{
 		if(SensorValue[LiftLimitTouch]!=0)
 		{
 			playTone(5000,5);
+
 			//stop the lift
 			motor[Lift]=0;
+
 			//move the lift back down to the limit.
 			while(nMotorEncoder[Lift]>LIFT_MAX)
 			{
 				motor[Lift]=-10;
 				LiftState=Running;
 			}
+
 			//now stop the motor again.
 			motor[Lift]=0;
 			LiftState=Stopped;
@@ -196,6 +200,7 @@ task HoldPosition()
 		{
 			motor[Lift] = -1 * LIFT_HOLD_POSITION_POWER;
 		}
+
 		if(nMotorEncoder[Lift] < TargetPosition)
 		{
 			motor[Lift] = LIFT_HOLD_POSITION_POWER;
@@ -203,85 +208,18 @@ task HoldPosition()
 	}
 }
 
-void wheelsMove ()
+
+void processControls()
 {
-	if(nMotorEncoder[Lift] >= LIFT_LOWER)
+	if(nMotorEncoder[Lift] >= LIFT_LOWER)	//assigns driver depending on height of lift
 	{
 		ChooseDriver = Scorer;
 	}
 	else
 	{
-		ChooseDriver = Driver;
+		ChooseDriver = MainDriver;
 	}
 
-	switch (CTRL1_DPAD)
-	{
-	case DPAD_TOP:
-		motor[LeftWheels] = 45;
-		motor[RightWheels] = 45;
-		break;
-	case DPAD_BOTTOM:
-		motor[LeftWheels] = -40;
-		motor[RightWheels] = -40;
-		break;
-	case DPAD_LEFT:
-		motor[LeftWheels] = 60;
-		motor[RightWheels] = -60;
-		break;
-	case DPAD_RIGHT:
-		motor[LeftWheels] = -60;
-		motor[RightWheels] = 60;
-		break;
-	case DPAD_TOP_LEFT:
-		motor[LeftWheels] = 50;
-		motor[RightWheels] = 0;
-		break;
-	case DPAD_BOTTOM_LEFT:
-		motor[LeftWheels] = -50;
-		motor[RightWheels] = 0;
-		break;
-	case DPAD_BOTTOM_RIGHT:
-		motor[LeftWheels] = 0;
-		motor[RightWheels] = -50;
-		break;
-	case DPAD_TOP_RIGHT:
-		motor[LeftWheels] = 0;
-		motor[RightWheels] = 50;
-		break;
-	default:
-		if(ChooseDriver == Driver)
-		{
-			if(nMotorEncoder[Lift] >LIFT_BASE)
-			{
-				motor[RightWheels] = CTRL1_JOY_LEFT_Y / 127 * 100 /4; // Divides power by 4 to go slower when lift is up
-				motor[LeftWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100 /4;
-			}
-			else
-			{
-				motor[RightWheels] = CTRL1_JOY_LEFT_Y / 127 * 100; // Scales joystick values for motors.
-				motor[LeftWheels] = CTRL1_JOY_RIGHT_Y / 127 * 100;
-			}
-		}
-		else if(ChooseDriver == Scorer)
-		{
-			motor[RightWheels] = CTRL2_JOY_LEFT_Y /127 * 100 /8; // Divides power by 8 to go slower when lift is up
-			motor[LeftWheels] = CTRL2_JOY_RIGHT_Y / 127 *100 /8;
-		}
-		break;
-	}
-}
-
-void buttonFunctions()
-{
-	liftOverride();
-	spindleMove();
-	gateControl();
-	liftReach();
-	grabBase();
-}
-
-void liftOverride()
-{
 	if(BTN_LIFT_UP)
 	{
 		stopTask(HoldPosition);
@@ -300,14 +238,14 @@ void liftOverride()
 				motor[Lift] = 0;
 				LiftState = Stopped;
 			}
-			clearTimer(T2);
 
+			clearTimer(T2);
 		}
 	}
-
 	if(BTN_LIFT_DOWN)
 	{
 		stopTask(HoldPosition);
+
 		if(time1[T2]>500) 	//checks to see if button isn't pressed to fast
 		{
 			if(LiftState == Stopped)
@@ -323,13 +261,10 @@ void liftOverride()
 				motor[Lift] = 0;
 				LiftState = Stopped;
 			}
+
 			clearTimer(T2);
 		}
 	}
-}
-
-void spindleMove()
-{
 	if(BTN_ROTATESPINDLE_FORWARD)
 	{
 		if(time1[T1]>500)		//checks to see if button isn't pressed to fast
@@ -364,10 +299,6 @@ void spindleMove()
 			clearTimer(T1);
 		}
 	}
-}
-
-void gateControl()
-{
 	if(BTN_GATE_CTRL)
 	{
 		if(time1[T3]>500)	//checks to see if button is pressed too fast
@@ -379,7 +310,7 @@ void gateControl()
 			}
 			else
 			{
-				servo[Gate]=GATE_CLOSED;	//closes gate
+				servo[Gate] = GATE_CLOSED;	//closes gate
 				GateState=Closed;
 			}
 			clearTimer(T3);
@@ -387,10 +318,6 @@ void gateControl()
 		}
 
 	}
-}
-
-void liftReach()
-{
 	if(BTN_LIFT_BASE)
 	{
 		moveLift(LIFT_BASE);
@@ -410,10 +337,6 @@ void liftReach()
 	{
 		moveLift(LIFT_TOP);
 	}
-}
-
-void grabBase()
-{
 	if(BTN_GRAB_GOAL)
 	{
 		if(time1(T4)>500)	//checks to see if button is pressed too fast
@@ -430,58 +353,162 @@ void grabBase()
 
 		}
 	}
-}
+
+	// Control Wheels
+	if(ChooseDriver == MainDriver) // For Controller 1
+	{
+		if(nMotorEncoder[Lift] >LIFT_BASE)
+		{
+			powerFactor = .25;
+		}
+		else
+		{
+			powerFactor = 1;
+		}
+
+		if(CTRL1_JOY_LEFT_Y >= JOYSTICK_THRESHOLD)
+		{
+			motor[LeftWheels] = CTRL1_JOY_LEFT_Y * powerFactor;
+		}
+		if(CTRL1_JOY_RIGHT_Y >= JOYSTICK_THRESHOLD)
+		{
+			motor[RightWheels] = CTRL1_JOY_RIGHT_Y * powerFactor;
+		}
+
+		switch (CTRL1_DPAD)
+		{
+			case DPAD_TOP:
+				motor[LeftWheels] = 80 * powerFactor;
+				motor[RightWheels] = 80 * powerFactor;
+				break;
+			case DPAD_BOTTOM:
+				motor[LeftWheels] = -80 * powerFactor;
+				motor[RightWheels] = -80 * powerFactor;
+				break;
+			case DPAD_LEFT:
+				motor[LeftWheels] = 80 * powerFactor;
+				motor[RightWheels] = -80 * powerFactor;
+				break;
+			case DPAD_RIGHT:
+				motor[LeftWheels] = -80 * powerFactor;
+				motor[RightWheels] = 80 * powerFactor;
+				break;
+			case DPAD_TOP_LEFT:
+				motor[LeftWheels] = 50 * powerFactor;
+				motor[RightWheels] = 0;
+				break;
+			case DPAD_BOTTOM_LEFT:
+				motor[LeftWheels] = -50 * powerFactor;
+				motor[RightWheels] = 0;
+				break;
+			case DPAD_BOTTOM_RIGHT:
+				motor[LeftWheels] = 0;
+				motor[RightWheels] = -50 * powerFactor;
+				break;
+			case DPAD_TOP_RIGHT:
+				motor[LeftWheels] = 0;
+				motor[RightWheels] = 50 * powerFactor;
+				break;
+		}
+	}
+	else if(ChooseDriver == Scorer)
+	{
+		powerFactor = .125;
+		if(CTRL2_JOY_LEFT_Y >= JOYSTICK_THRESHOLD)
+		{
+			motor[LeftWheels] = CTRL2_JOY_LEFT_Y * powerFactor;
+		}
+		if(CTRL2_JOY_RIGHT_Y >= JOYSTICK_THRESHOLD)
+		{
+			motor[RightWheels] = CTRL2_JOY_RIGHT_Y * powerFactor;
+		}
+		switch (CTRL2_DPAD)
+		{
+			case DPAD_TOP:
+				motor[LeftWheels] = 80 * powerFactor;
+				motor[RightWheels] = 80 * powerFactor;
+				break;
+			case DPAD_BOTTOM:
+				motor[LeftWheels] = -80 * powerFactor;
+				motor[RightWheels] = -80 * powerFactor;
+				break;
+			case DPAD_LEFT:
+				motor[LeftWheels] = 80 * powerFactor;
+				motor[RightWheels] = -80 * powerFactor;
+				break;
+			case DPAD_RIGHT:
+				motor[LeftWheels] = -80 * powerFactor;
+				motor[RightWheels] = 80 * powerFactor;
+				break;
+			case DPAD_TOP_LEFT:
+				motor[LeftWheels] = 50 * powerFactor;
+				motor[RightWheels] = 0;
+				break;
+			case DPAD_BOTTOM_LEFT:
+				motor[LeftWheels] = -50 * powerFactor;
+				motor[RightWheels] = 0;
+				break;
+			case DPAD_BOTTOM_RIGHT:
+				motor[LeftWheels] = 0;
+				motor[RightWheels] = -50 * powerFactor;
+				break;
+			case DPAD_TOP_RIGHT:
+				motor[LeftWheels] = 0;
+				motor[RightWheels] = 50 * powerFactor;
+				break;
+		} // switch
+	} // else if
+} // processFunction
+
 
 void moveLift(int encoderCounts)
 {
 	nMotorPIDSpeedCtrl[Lift]=mtrSpeedReg;
 	CurrentPosition=nMotorEncoder[Lift];
 
-	//release the Hold Position task, to allow movement
-	stopTask(HoldPosition);
+	stopTask(HoldPosition); //release the Hold Position task, to allow movement
 
-	//close the gate, to ensure the safety of motion of the lift
+	servo[Gate]=GATE_CLOSED; //close the gate, to ensure the safety of motion of the lift
 
-	servo[Gate]=GATE_CLOSED;
-
-	//Now check if we need to travel up or down.
-	if(nMotorEncoder[Lift]>encoderCounts){
+	if(nMotorEncoder[Lift]>encoderCounts) //Now check if we need to travel up or down.
+	{
 		//we need to move down
-
 
 		//check if we are travelling below the lower goal, special handling, until counterweight deployed.
 		LiftState=Running;
 		nMotorEncoderTarget[Lift]=(CurrentPosition-encoderCounts);
 		motor[Lift]=-75;
 
-
-
-		while((nMotorRunState[Lift]!=runStateIdle)&&(nMotorEncoder[Lift]>=LIFT_LOWER)){
+		while((nMotorRunState[Lift]!=runStateIdle)&&(nMotorEncoder[Lift]>=LIFT_LOWER))
+		{
 			//let the motor lift run until motor becomes idle on reaching target or we reach the last segment down
 			//if we reach the last segment down we want to slow down.
 		}
 
-		if(nMotorEncoder[Lift]>encoderCounts){
+		if(nMotorEncoder[Lift]>encoderCounts)
+		{
 			CurrentPosition=nMotorEncoder[Lift];
 			//we are now below the height of the lower base and need to slow down to let the last segment fall slowly
 			//This should only execute when the target is the base of the lift
 			nMotorEncoderTarget[Lift]=(CurrentPosition-encoderCounts);
 			motor[Lift]=-20;
-			while(nMotorRunState[Lift]!=runStateIdle){
+			while(nMotorRunState[Lift]!=runStateIdle)
+			{
 				//let the motor reach the target
-			}
-		}
-
-		}else if(nMotorEncoder[Lift]<encoderCounts){
+			} // while
+		} // if
+	} // if
+	else if(nMotorEncoder[Lift]<encoderCounts)
+	{
 		//we need to move up
 
-		nMotorEncoderTarget[Lift]=(encoderCounts-CurrentPosition);
-		motor[Lift]=95;
-		LiftState=Running;
-		while(nMotorRunState[Lift]!=runStateIdle){
+		nMotorEncoderTarget[Lift] = (encoderCounts-CurrentPosition);
+		motor[Lift] = 95;
+		LiftState = Running;
+		while(nMotorRunState[Lift] != runStateIdle)
+		{
 			//let the motor run till it reaches target
 		}
-
 	}
 	//If we are already at the EncoderValue target we don't have to do anything
 
@@ -489,12 +516,14 @@ void moveLift(int encoderCounts)
 	motor[Lift]=0;
 	LiftState=Stopped;
 	TargetPosition=encoderCounts;
-	if(encoderCounts!=LIFT_BASE){
+	if(encoderCounts!=LIFT_BASE)
+	{
 		//if it is at lift base we don't need to hold position as it will be supported already
 		//otherwise we lock on to the position
 		startTask(HoldPosition);
-		}else{
-		//not needed, just caution
+	}
+	else //not needed, just caution
+	{
 		stopTask(HoldPosition);
 	}
 }
