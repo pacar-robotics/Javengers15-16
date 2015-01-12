@@ -385,6 +385,12 @@ void processControls()
 		}
 
 		switch (CTRL1_DPAD)
+		/*
+		 * Top = 180 deg Counter-Clockwise
+		 * Bottom = 180 deg Clockwise
+		 * Right = 90 deg Clockwise
+		 * Left = 90 deg Counter-Clockwise
+		 */
 		{
 			case DPAD_TOP:
 				motor[LeftWheels] = 60 * powerFactor;
