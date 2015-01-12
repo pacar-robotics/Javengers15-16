@@ -16,16 +16,14 @@
 
 #include "JoystickDriver.c"  //Include file to "handle" the Bluetooth messages.
 
-// Made these new button names so they are easier to understand. You won't have to type the whole thing because of auto-complete.
-
 // Controller 1 Buttons
-#define CTRL1_BUTTON_LEFT joy1Btn(1)
-#define CTRL1_BUTTON_BOTTOM joy1Btn(2)
-#define CTRL1_BUTTON_TOP joy1Btn(3)
-#define CTRL1_BUTTON_RIGHT joy1Btn(4)
 #define BTN_ROTATESPINDLE_FORWARD joy1Btn(7)
 #define BTN_ROTATESPINDLE_BACKWARD joy1Btn(8)
 #define BTN_GRAB_GOAL	joy1Btn(6)
+//#define CTRL1_BUTTON_LEFT joy1Btn(1)
+//#define CTRL1_BUTTON_BOTTOM joy1Btn(2)
+//#define CTRL1_BUTTON_TOP joy1Btn(3)
+//#define CTRL1_BUTTON_RIGHT joy1Btn(4)
 
 // Controller 2 Buttons
 #define BTN_LIFT_LOWERGOAL joy2Btn(1)
@@ -37,29 +35,29 @@
 #define BTN_LIFT_DOWN joy2Btn(12)
 
 // Controller 1 Joysticks
-#define CTRL1_JOY_LEFT_X joystick.joy1_x1
 #define CTRL1_JOY_LEFT_Y joystick.joy1_y1
-#define CTRL1_JOY_RIGHT_X joystick.joy1_x2
 #define CTRL1_JOY_RIGHT_Y joystick.joy1_y2
+//#define CTRL1_JOY_LEFT_X joystick.joy1_x1
+//#define CTRL1_JOY_RIGHT_X joystick.joy1_x2
 
 // Controller 2 Joysticks
-#define CTRL2_JOY_LEFT_X joystick.joy2_x1
 #define CTRL2_JOY_LEFT_Y joystick.joy2_y1
-#define CTRL2_JOY_RIGHT_X joystick.joy2_x2
 #define CTRL2_JOY_RIGHT_Y	joystick.joy2_y2
+//#define CTRL2_JOY_LEFT_X joystick.joy2_x1
+//#define CTRL2_JOY_RIGHT_X joystick.joy2_x2
 
 // Controllers' D-Pads.
 #define CTRL1_DPAD joystick.joy1_TopHat // Controller 1 Directional Pad
 #define CTRL2_DPAD joystick.joy2_TopHat // Controller 2 D-Pad
 // D-Pad possible positions
 #define DPAD_TOP 0
-#define DPAD_TOP_RIGHT 1
 #define DPAD_RIGHT 2
-#define DPAD_BOTTOM_RIGHT 3
 #define DPAD_BOTTOM 4
-#define DPAD_BOTTOM_LEFT 5
 #define DPAD_LEFT 6
-#define DPAD_TOP_LEFT 7
+//#define DPAD_TOP_RIGHT 1
+//#define DPAD_BOTTOM_RIGHT 3
+//#define DPAD_BOTTOM_LEFT 5
+//#define DPAD_TOP_LEFT 7
 
 // Lift
 #define LIFT_MAX 10800
@@ -77,34 +75,44 @@
 #define GOAL_HOOKS_OPEN 10
 #define GOAL_HOOKS_CLOSED 180
 
-#define JOYSTICK_THRESHOLD 10 // Threshold for Joysticks, so it doesn't move
+//Threshold for Joysticks, so it doesn't move when thumbs are slightly touching it
+#define JOYSTICK_THRESHOLD 10
 
-enum SpindleStateEnum {Running, Stopped};
-enum LiftStateEnum {Running, Stopped};
-enum GateStateEnum {Open, Closed};
-enum ChooseDriverEnum {MainDriver, Scorer};
+// Used for dualMotorTurn
+#define CLOCKWISE true
+#define COUNTER_CLOCKWISE false
+#define DIAMETER 7.62
+#define TRACK_DISTANCE 48
+#define RAMP_DISTANCE 150
+
+enum SpindleStateEnum {Running, Stopped}; // State of Spindle
+enum LiftStateEnum {Running, Stopped}; // State of Lift
+enum GateStateEnum {Open, Closed}; // State of gate
+enum ChooseDriverEnum {MainDriver, Scorer}; // Shows which driver is running the robot
 
 SpindleStateEnum SpindleState;
 LiftStateEnum LiftState;
 GateStateEnum GateState;
 ChooseDriverEnum ChooseDriver;
 
-// Primary functions/tasks
-task liftCheckMAX(); // Checks if the lift is too high
-task liftCheckMIN();
-task checkLiftTouch();
-task HoldPosition();
+// Tasks
+task liftCheckMAX(); // Checks if lift is too high
+task liftCheckMIN(); // Checks if lift is too low
+task checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
+task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
 
-void initializeRobot();
-void clrTimers();
+// Primary Functions
+void initializeRobot(); // Gets robot ready for Tele-op
+void clrTimers(); // Clears timers needed for buttons
 void processControls(); // Has uses for buttons
 
-// Tertiary functions
-void moveLift(int encoderCounts);
+// Secondary Functions
+void moveLift(int encoderCounts); // Moves lift to specified position
+void dualMotorTurn(float robotDegrees, float power, bool direction); // Turns robot to specified position
 
-int TargetPosition = 0;
-int CurrentPosition = 0;
-int powerFactor;
+int TargetPosition = 0; // Used in holdPosition
+int CurrentPosition = 0; // Used in moveLift
+int powerFactor; // Used in driving, when lift is up, powerFactor goes down
 
 task main()
 {
@@ -116,9 +124,9 @@ task main()
 	startTask (checkLiftTouch);
 	clrTimers();
 
-	while (1)
+	while (1) // Infinite loop, will end when match ends
 	{
-		getJoystickSettings(joystick);
+		getJoystickSettings(joystick); // Gets current joystick settings
 		processControls();
 	}
 }
@@ -139,74 +147,81 @@ void clrTimers()
 	clearTimer (T2);	//timer used for Lift
 	clearTimer (T3);	//timer used for Gate
 	clearTimer (T4);	//timer used for Hooks
+	//clearTimer (T5);  //timer used for D-Pad
 }
 
 task liftCheckMAX ()
 {
-	if (nMotorEncoder[Lift] > LIFT_MAX)
+	while(true) // Constantly checks
 	{
-		while (nMotorEncoder[Lift] > LIFT_MAX)
+		if (nMotorEncoder[Lift] > LIFT_MAX) // Checks if lift is higher than it is supposed to be
 		{
-			motor[Lift] = -20; // Might have to change values...
-		}
+			LiftState = Running;
 
-		motor[Lift] = 0;
-	}
-}
+			while (nMotorEncoder[Lift] > LIFT_MAX) // Lowers lift until it is in the right position
+			{
+				motor[Lift] = -20;
+			}
+
+			motor[Lift] = 0; // After lift is where it is supposed to be, stop it
+			LiftState = Stopped;
+		} // if (nMotorEncoder[Lift] > LIFT_MAX)
+	} // while(true)
+} // task liftCheckMAX()
 
 task liftCheckMIN()
 {
-	if (nMotorEncoder[Lift] < LIFT_BASE)
+	while(true) // Constantly checks
 	{
-		while (nMotorEncoder[Lift] < LIFT_BASE)
+		if (nMotorEncoder[Lift] < LIFT_BASE) // Checks if lift is lower than it is supposed to be
 		{
-			motor[Lift] = 20; // Might have to change values...
-		}
+			LiftState = Running;
 
-		motor[Lift] = 0;
-	}
-}
+			while (nMotorEncoder[Lift] < LIFT_BASE) // Raises lift until it is in the right position
+			{
+				motor[Lift] = 20;
+			}
+
+			motor[Lift] = 0;// After lift is where it is supposed to be, stop it
+			LiftState = Stopped;
+		} // if (nMotorEncoder[Lift] < LIFT_BASE)
+	} // while(true)
+} // task liftCheckMIN()
 
 task checkLiftTouch()
 {
-	while(true)
+	while(true) // Constantly checks
 	{
-		if(SensorValue[LiftLimitTouch]!=0)
+		if(SensorValue[LiftLimitTouch]!=0) // Checks if touch sensor is touched
 		{
-			playTone(5000,5);
+			LiftState=Running;
 
-			//stop the lift
-			motor[Lift]=0;
-
-			//move the lift back down to the limit.
-			while(nMotorEncoder[Lift]>LIFT_MAX)
+			while(nMotorEncoder[Lift]>LIFT_MAX) //move the lift back down to the limit.
 			{
 				motor[Lift]=-10;
-				LiftState=Running;
 			}
 
-			//now stop the motor again.
 			motor[Lift]=0;
 			LiftState=Stopped;
-		}
-	}
-}
+		} // if (SensorValue[LiftLimitTouch]!=0)
+	} // while(true)
+} // task checkLiftTouch()
 
-task HoldPosition()
+task holdPosition()
 {
-	while(true)
+	while(true) // Constantly checks
 	{
-		if(nMotorEncoder[Lift] > TargetPosition)
+		if(nMotorEncoder[Lift] > TargetPosition) // if higher than supposed to be, lower it
 		{
 			motor[Lift] = -1 * LIFT_HOLD_POSITION_POWER;
 		}
 
-		if(nMotorEncoder[Lift] < TargetPosition)
+		if(nMotorEncoder[Lift] < TargetPosition) // if lower than supposed to be, raise it
 		{
 			motor[Lift] = LIFT_HOLD_POSITION_POWER;
 		}
-	}
-}
+	} // while(true)
+} // task holdPosition()
 
 
 void processControls()
@@ -222,8 +237,9 @@ void processControls()
 
 	if(BTN_LIFT_UP)
 	{
-		stopTask(HoldPosition);
-		if(time1[T2]>500) 	//checks to see if button isn't pressed to fast
+		stopTask(holdPosition);
+
+		if(time1[T2] > 500) 	//checks to see if button isn't pressed to fast
 		{
 			if(LiftState == Stopped)
 			{
@@ -231,22 +247,21 @@ void processControls()
 				{
 					motor[Lift] = 70;
 					LiftState = Running;
-				}
-			}
+				} // if(nMotorEncoder[Lift] < LIFT_MAX)
+			} // if(LiftState == Stopped)
 			else
 			{
 				motor[Lift] = 0;
 				LiftState = Stopped;
 			}
-
 			clearTimer(T2);
-		}
-	}
+		} // if(time1[T2]>500)
+	} // if(BTN_LIFT_UP)
 	if(BTN_LIFT_DOWN)
 	{
-		stopTask(HoldPosition);
+		stopTask(holdPosition);
 
-		if(time1[T2]>500) 	//checks to see if button isn't pressed to fast
+		if(time1[T2] > 500) 	//checks to see if button isn't pressed to fast
 		{
 			if(LiftState == Stopped)
 			{
@@ -254,110 +269,107 @@ void processControls()
 				{
 					motor[Lift] = -70;
 					LiftState = Running;
-				}
-			}
+				} // if(nMotorEncoder[Lift] > 0)
+			} // if(LiftState == Stopped)
 			else
 			{
 				motor[Lift] = 0;
 				LiftState = Stopped;
 			}
-
 			clearTimer(T2);
-		}
-	}
+		} // if(time1[T2]>500)
+	} // if(BTN_LIFT_DOWN)
+
 	if(BTN_ROTATESPINDLE_FORWARD)
 	{
-		if(time1[T1]>500)		//checks to see if button isn't pressed to fast
+		if(time1[T1] > 500)		//checks to see if button isn't pressed to fast
 		{
-			if(SpindleState== Stopped)
+			if(SpindleState == Stopped)
 			{
-				motor[Spindle]=100;		//starts the Spindle
-				SpindleState= Running;
+				motor[Spindle] = 100;		//starts the Spindle
+				SpindleState = Running;
 			}
 			else
 			{
-				motor[Spindle]=0;		//stops the Spindle
-				SpindleState=Stopped;
+				motor[Spindle] = 0;		//stops the Spindle
+				SpindleState = Stopped;
 			}
 			clearTimer(T1);
-		}
-	}
+		} // if(time1[T1]>500)
+	} // if(BTN_ROTATESPINDLE_FORWARD)
 	if(BTN_ROTATESPINDLE_BACKWARD)
 	{
-		if(time1[T1]>500)	//checks to see if button isn't pressed to fast
+		if(time1[T1] > 500)	//checks to see if button isn't pressed to fast
 		{
-			if(SpindleState== Stopped)
+			if(SpindleState == Stopped)
 			{
-				motor[Spindle]=-100;		//starts the spindle (backwards)
-				SpindleState= Running;
+				motor[Spindle] = -100;		//starts the spindle (backwards)
+				SpindleState = Running;
 			}
 			else
 			{
-				motor[Spindle]=0;		//stops the spindle
-				SpindleState=Stopped;
+				motor[Spindle] = 0;		//stops the spindle
+				SpindleState = Stopped;
 			}
 			clearTimer(T1);
-		}
-	}
+		} // if(time1[T1]>500)
+	} // if(BTN_ROTATESPINDLE_BACKWARD)
+
 	if(BTN_GATE_CTRL)
 	{
-		if(time1[T3]>500)	//checks to see if button is pressed too fast
+		if(time1[T3] > 500)	//checks to see if button is pressed too fast
 		{
-			if(GateState== Closed)
+			if(GateState == Closed)
 			{
-				servo[Gate]= GATE_OPEN;	//opens gate
-				GateState=Open;
+				servo[Gate] = GATE_OPEN;	//opens gate
+				GateState = Open;
 			}
 			else
 			{
 				servo[Gate] = GATE_CLOSED;	//closes gate
-				GateState=Closed;
+				GateState = Closed;
 			}
 			clearTimer(T3);
+		} // if(time1[T3]>500)
+	} // if(BTN_GATE_CTRL)
 
-		}
-
-	}
 	if(BTN_LIFT_BASE)
 	{
 		moveLift(LIFT_BASE);
 	}
-
 	if(BTN_LIFT_LOWERGOAL)
 	{
 		moveLift(LIFT_LOWER);
 	}
-
 	if(BTN_LIFT_MIDDLEGOAL)
 	{
 		moveLift(LIFT_MIDDLE);
 	}
-
 	if(BTN_LIFT_TOPGOAL)
 	{
 		moveLift(LIFT_TOP);
 	}
+
 	if(BTN_GRAB_GOAL)
 	{
-		if(time1(T4)>500)	//checks to see if button is pressed too fast
+		if(time1[T4]>500)	//checks to see if button is pressed too fast
 		{
-			if((servo[Hooks]==GOAL_HOOKS_CLOSED))
+			if((servo[Hooks] == GOAL_HOOKS_CLOSED))
 			{
-				servo[Hooks]=GOAL_HOOKS_OPEN;
+				servo[Hooks] = GOAL_HOOKS_OPEN;
 			}
 			else
 			{
-				servo[Hooks]=GOAL_HOOKS_CLOSED;
+				servo[Hooks] = GOAL_HOOKS_CLOSED;
 			}
 			clearTimer(T4);
-
-		}
-	}
+		} // if(time1[T4]>500)
+	} // if(BTN_GRAB_GOAL)
 
 	// Control Wheels
 	if(ChooseDriver == MainDriver) // For Controller 1
 	{
-		if(nMotorEncoder[Lift] >LIFT_BASE)
+		if(nMotorEncoder[Lift] > LIFT_BASE) // If lift is higher than base, let movements be slower
 		{
 			powerFactor = .25;
 		}
@@ -385,50 +397,57 @@ void processControls()
 		}
 
 		switch (CTRL1_DPAD)
-		/*
-		 * Top = 180 deg Counter-Clockwise
-		 * Bottom = 180 deg Clockwise
-		 * Right = 90 deg Clockwise
-		 * Left = 90 deg Counter-Clockwise
-		 */
+		/*																 *
+		* Top = 180 deg Counter-Clockwise *
+		* Bottom = 180 deg Clockwise			 *
+		* Right = 90 deg Clockwise				 *
+		* Left = 90 deg Counter-Clockwise *
+		*														 		 */
 		{
-			case DPAD_TOP:
-				motor[LeftWheels] = 60 * powerFactor;
-				motor[RightWheels] = 60 * powerFactor;
-				break;
-			case DPAD_BOTTOM:
-				motor[LeftWheels] = -80 * powerFactor;
-				motor[RightWheels] = -80 * powerFactor;
+			case DPAD_RIGHT:
+				dualMotorTurn(90, 40, CLOCKWISE);
+				//motor[LeftWheels] = -80 * powerFactor;
+				//motor[RightWheels] = 80 * powerFactor;
 				break;
 			case DPAD_LEFT:
-				motor[LeftWheels] = 80 * powerFactor;
-				motor[RightWheels] = -80 * powerFactor;
+				dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
+				//motor[LeftWheels] = 80 * powerFactor;
+				//motor[RightWheels] = -80 * powerFactor;
 				break;
-			case DPAD_RIGHT:
-				motor[LeftWheels] = -80 * powerFactor;
-				motor[RightWheels] = 80 * powerFactor;
+			case DPAD_TOP:
+				dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
+				//motor[LeftWheels] = 60 * powerFactor;
+				//motor[RightWheels] = 60 * powerFactor;
 				break;
-			case DPAD_TOP_LEFT:
-				motor[LeftWheels] = 50 * powerFactor;
-				motor[RightWheels] = 0;
+			case DPAD_BOTTOM:
+				dualMotorTurn(180, 40, CLOCKWISE);
+				//motor[LeftWheels] = -80 * powerFactor;
+				//motor[RightWheels] = -80 * powerFactor;
 				break;
-			case DPAD_BOTTOM_LEFT:
-				motor[LeftWheels] = -50 * powerFactor;
-				motor[RightWheels] = 0;
-				break;
-			case DPAD_BOTTOM_RIGHT:
-				motor[LeftWheels] = 0;
-				motor[RightWheels] = -50 * powerFactor;
-				break;
-			case DPAD_TOP_RIGHT:
-				motor[LeftWheels] = 0;
-				motor[RightWheels] = 50 * powerFactor;
-				break;
-		}
-	}
+				/*
+				case DPAD_TOP_LEFT:
+					motor[LeftWheels] = 50 * powerFactor;
+					motor[RightWheels] = 0;
+					break;
+				case DPAD_BOTTOM_LEFT:
+					motor[LeftWheels] = -50 * powerFactor;
+					motor[RightWheels] = 0;
+					break;
+				case DPAD_BOTTOM_RIGHT:
+					motor[LeftWheels] = 0;
+					motor[RightWheels] = -50 * powerFactor;
+					break;
+				case DPAD_TOP_RIGHT:
+					motor[LeftWheels] = 0;
+					motor[RightWheels] = 50 * powerFactor;
+					break;
+				*/
+		} // switch (CTRL1_DPAD)
+	} // if(ChooseDriver == MainDriver)
 	else if(ChooseDriver == Scorer)
 	{
 		powerFactor = .125;
+
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
 			motor[LeftWheels] = CTRL2_JOY_LEFT_Y * powerFactor;
@@ -449,106 +468,154 @@ void processControls()
 
 		switch (CTRL2_DPAD)
 		{
-			case DPAD_TOP:
-				motor[LeftWheels] = 80 * powerFactor;
-				motor[RightWheels] = 80 * powerFactor;
-				break;
-			case DPAD_BOTTOM:
-				motor[LeftWheels] = -80 * powerFactor;
-				motor[RightWheels] = -80 * powerFactor;
+			/*																 *
+			* Top = 180 deg Counter-Clockwise *
+			* Bottom = 180 deg Clockwise			 *
+			* Right = 90 deg Clockwise				 *
+			* Left = 90 deg Counter-Clockwise *
+			*														 		 */
+			case DPAD_RIGHT:
+				dualMotorTurn(90, 40, CLOCKWISE);
+				//motor[LeftWheels] = -80 * powerFactor;
+				//motor[RightWheels] = 80 * powerFactor;
 				break;
 			case DPAD_LEFT:
-				motor[LeftWheels] = 80 * powerFactor;
-				motor[RightWheels] = -80 * powerFactor;
+				dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
+				//motor[LeftWheels] = 80 * powerFactor;
+				//motor[RightWheels] = -80 * powerFactor;
 				break;
-			case DPAD_RIGHT:
-				motor[LeftWheels] = -80 * powerFactor;
-				motor[RightWheels] = 80 * powerFactor;
+			case DPAD_TOP:
+				dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
+				//motor[LeftWheels] = 60 * powerFactor;
+				//motor[RightWheels] = 60 * powerFactor;
 				break;
-			case DPAD_TOP_LEFT:
-				motor[LeftWheels] = 50 * powerFactor;
-				motor[RightWheels] = 0;
+			case DPAD_BOTTOM:
+				dualMotorTurn(180, 40, CLOCKWISE);
+				//motor[LeftWheels] = -80 * powerFactor;
+				//motor[RightWheels] = -80 * powerFactor;
 				break;
-			case DPAD_BOTTOM_LEFT:
-				motor[LeftWheels] = -50 * powerFactor;
-				motor[RightWheels] = 0;
-				break;
-			case DPAD_BOTTOM_RIGHT:
-				motor[LeftWheels] = 0;
-				motor[RightWheels] = -50 * powerFactor;
-				break;
-			case DPAD_TOP_RIGHT:
-				motor[LeftWheels] = 0;
-				motor[RightWheels] = 50 * powerFactor;
-				break;
-		} // switch
-	} // else if
-} // processFunction
+				/*
+				case DPAD_TOP_LEFT:
+					motor[LeftWheels] = 50 * powerFactor;
+					motor[RightWheels] = 0;
+					break;
+				case DPAD_BOTTOM_LEFT:
+					motor[LeftWheels] = -50 * powerFactor;
+					motor[RightWheels] = 0;
+					break;
+				case DPAD_BOTTOM_RIGHT:
+					motor[LeftWheels] = 0;
+					motor[RightWheels] = -50 * powerFactor;
+					break;
+				case DPAD_TOP_RIGHT:
+					motor[LeftWheels] = 0;
+					motor[RightWheels] = 50 * powerFactor;
+					break;
+				*/
+		} // switch (CTRL2_DPAD)
+	} // else if(ChooseDriver == Scorer)
+} // void processControls()
 
+void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turns using both motors
+{
+	int encoderCounts = TRACK_DISTANCE / DIAMETER * robotDegrees * 4;
+
+	// Set motors to No PID control as differential turns have problems
+	nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
+	nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
+
+	// Resets the encoders
+	nMotorEncoder[LeftWheels] = 0;
+	nMotorEncoder[RightWheels] = 0;
+
+	if (direction)	// Turns robot clockwise
+	{
+		nMotorEncoderTarget[LeftWheels] = -1 * encoderCounts;
+		nMotorEncoderTarget[RightWheels] = encoderCounts;
+		motor[LeftWheels] = -1 * power;
+		motor[RightWheels] = power;
+	}
+	else // Turns robot counter-clockwise
+	{
+		nMotorEncoderTarget[LeftWheels] = encoderCounts;
+		nMotorEncoderTarget[RightWheels] = -1 * encoderCounts;
+		motor[LeftWheels] = power;
+		motor[RightWheels] = -1 * power;
+	}
+
+	while((nMotorRunState[LeftWheels]!=runStateIdle)&&(nMotorRunState[RightWheels]!=runStateIdle))
+	{
+		// Do nothing while we wait for motors to spin to correct angles.
+	}
+
+	// Stop the motors
+	motor[LeftWheels] = 0;
+	motor[RightWheels] = 0;
+
+	// Set back to regulated motors so we dont have the wrong mode when exiting
+	nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
+	nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
+} // void dualMotorTurn(float robotDegrees, float power, bool direction)
 
 void moveLift(int encoderCounts)
 {
-	nMotorPIDSpeedCtrl[Lift]=mtrSpeedReg;
-	CurrentPosition=nMotorEncoder[Lift];
+	nMotorPIDSpeedCtrl[Lift] = mtrSpeedReg;
+	CurrentPosition = nMotorEncoder[Lift];
 
-	stopTask(HoldPosition); //release the Hold Position task, to allow movement
+	stopTask(holdPosition); // Release the Hold Position task, to allow movement
 
-	servo[Gate]=GATE_CLOSED; //close the gate, to ensure the safety of motion of the lift
+	servo[Gate] = GATE_CLOSED; // Close the gate, to ensure the safety of motion of the lift
 
-	if(nMotorEncoder[Lift]>encoderCounts) //Now check if we need to travel up or down.
+	// Now check if we need to travel up or down.
+	if(nMotorEncoder[Lift] > encoderCounts) // Need to move down
 	{
-		//we need to move down
+		// Check if we are travelling below the lower goal, special handling, until counterweight deployed.
+		LiftState = Running;
+		nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
+		motor[Lift] = -75;
 
-		//check if we are travelling below the lower goal, special handling, until counterweight deployed.
-		LiftState=Running;
-		nMotorEncoderTarget[Lift]=(CurrentPosition-encoderCounts);
-		motor[Lift]=-75;
-
-		while((nMotorRunState[Lift]!=runStateIdle)&&(nMotorEncoder[Lift]>=LIFT_LOWER))
+		while(nMotorRunState[Lift] != runStateIdle && nMotorEncoder[Lift] >= LIFT_LOWER)
 		{
-			//let the motor lift run until motor becomes idle on reaching target or we reach the last segment down
-			//if we reach the last segment down we want to slow down.
+			// Let the motor lift run until motor becomes idle on reaching target or we reach the last segment down if we reach the last segment down we want to slow down.
 		}
 
-		if(nMotorEncoder[Lift]>encoderCounts)
+		if(nMotorEncoder[Lift] > encoderCounts)
 		{
 			CurrentPosition=nMotorEncoder[Lift];
-			//we are now below the height of the lower base and need to slow down to let the last segment fall slowly
-			//This should only execute when the target is the base of the lift
-			nMotorEncoderTarget[Lift]=(CurrentPosition-encoderCounts);
-			motor[Lift]=-20;
-			while(nMotorRunState[Lift]!=runStateIdle)
+			// We are now below the height of the lower base and need to slow down to let the last segment fall slowly
+			// This should only execute when the target is the base of the lift
+			nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
+			motor[Lift] = -20;
+			while(nMotorRunState[Lift] != runStateIdle)
 			{
 				//let the motor reach the target
-			} // while
-		} // if
-	} // if
-	else if(nMotorEncoder[Lift]<encoderCounts)
+			}
+		} // if(nMotorEncoder[Lift] > encoderCounts)
+	} // if(nMotorEncoder[Lift] > encoderCounts)
+	else if(nMotorEncoder[Lift] < encoderCounts) // Need to move up
 	{
-		//we need to move up
-
-		nMotorEncoderTarget[Lift] = (encoderCounts-CurrentPosition);
+		nMotorEncoderTarget[Lift] = encoderCounts - CurrentPosition;
 		motor[Lift] = 95;
 		LiftState = Running;
 		while(nMotorRunState[Lift] != runStateIdle)
 		{
 			//let the motor run till it reaches target
 		}
-	}
-	//If we are already at the EncoderValue target we don't have to do anything
+	} // else if(nMotorEncoder[Lift]<encoderCounts)
 
-	//stop the motor
-	motor[Lift]=0;
-	LiftState=Stopped;
-	TargetPosition=encoderCounts;
-	if(encoderCounts!=LIFT_BASE)
+	// If we are already at the EncoderValue target we don't have to do anything
+
+	// Stop the motor
+	motor[Lift] = 0;
+	LiftState = Stopped;
+	TargetPosition = encoderCounts;
+	if(encoderCounts != LIFT_BASE)
 	{
-		//if it is at lift base we don't need to hold position as it will be supported already
-		//otherwise we lock on to the position
-		startTask(HoldPosition);
+		// If it is at lift base we don't need to hold position as it will be supported already otherwise we lock on to the position
+		startTask(holdPosition);
 	}
-	else //not needed, just caution
+	else // Not needed, just caution
 	{
-		stopTask(HoldPosition);
+		stopTask(holdPosition);
 	}
 }
