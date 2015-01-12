@@ -380,20 +380,20 @@ void processControls()
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = CTRL1_JOY_LEFT_Y * powerFactor;
-		}
-		else
-		{
-			motor[LeftWheels] = 0;
-		}
-
-		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
-		{
-			motor[RightWheels] = CTRL1_JOY_RIGHT_Y * powerFactor;
+			motor[RightWheels] = CTRL1_JOY_LEFT_Y * powerFactor;
 		}
 		else
 		{
 			motor[RightWheels] = 0;
+		}
+
+		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
+		{
+			motor[LeftWheels] = CTRL1_JOY_RIGHT_Y * powerFactor;
+		}
+		else
+		{
+			motor[LeftWheels] = 0;
 		}
 
 		switch (CTRL1_DPAD)
