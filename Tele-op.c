@@ -68,8 +68,8 @@
 #define LIFT_HOLD_POSITION_POWER 5
 
 //Gate
-#define GATE_CLOSED 70
-#define GATE_OPEN 150
+#define GATE_CLOSED 50
+#define GATE_OPEN 130
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
@@ -112,7 +112,7 @@ void dualMotorTurn(float robotDegrees, float power, bool direction); // Turns ro
 
 int TargetPosition = 0; // Used in holdPosition
 int CurrentPosition = 0; // Used in moveLift
-int powerFactor; // Used in driving, when lift is up, powerFactor goes down
+float powerFactor; // Used in driving, when lift is up, powerFactor goes down
 
 task main()
 {
@@ -147,7 +147,6 @@ void clrTimers()
 	clearTimer (T2);	//timer used for Lift
 	clearTimer (T3);	//timer used for Gate
 	clearTimer (T4);	//timer used for Hooks
-	//clearTimer (T5);  //timer used for D-Pad
 }
 
 task liftCheckMAX ()
@@ -173,11 +172,11 @@ task liftCheckMIN()
 {
 	while(true) // Constantly checks
 	{
-		if (nMotorEncoder[Lift] < LIFT_BASE) // Checks if lift is lower than it is supposed to be
+		if (nMotorEncoder[Lift] < LIFT_BASE - 1) // Checks if lift is lower than it is supposed to be
 		{
 			LiftState = Running;
 
-			while (nMotorEncoder[Lift] < LIFT_BASE) // Raises lift until it is in the right position
+			while (nMotorEncoder[Lift] < LIFT_BASE - 1) // Raises lift until it is in the right position
 			{
 				motor[Lift] = 20;
 			}
@@ -192,11 +191,11 @@ task checkLiftTouch()
 {
 	while(true) // Constantly checks
 	{
-		if(SensorValue[LiftLimitTouch]!=0) // Checks if touch sensor is touched
+		if(SensorValue[LiftLimitTouch] != 0) // Checks if touch sensor is touched
 		{
-			LiftState=Running;
+			LiftState = Running;
 
-			while(nMotorEncoder[Lift]>LIFT_MAX) //move the lift back down to the limit.
+			while(nMotorEncoder[Lift] > LIFT_MAX) //move the lift back down to the limit.
 			{
 				motor[Lift]=-10;
 			}
@@ -226,15 +225,6 @@ task holdPosition()
 
 void processControls()
 {
-	if(nMotorEncoder[Lift] >= LIFT_LOWER)	//assigns driver depending on height of lift
-	{
-		ChooseDriver = Scorer;
-	}
-	else
-	{
-		ChooseDriver = MainDriver;
-	}
-
 	if(BTN_LIFT_UP)
 	{
 		stopTask(holdPosition);
@@ -366,21 +356,30 @@ void processControls()
 		} // if(time1[T4]>500)
 	} // if(BTN_GRAB_GOAL)
 
-	// Control Wheels
+	//  Wheels
+	if(nMotorEncoder[Lift] >= LIFT_LOWER)	//assigns driver depending on height of lift
+	{
+		ChooseDriver = Scorer;
+	}
+	else
+	{
+		ChooseDriver = MainDriver;
+	}
+
 	if(ChooseDriver == MainDriver) // For Controller 1
 	{
-		if(nMotorEncoder[Lift] > LIFT_BASE) // If lift is higher than base, let movements be slower
+		if((nMotorEncoder[Lift] > LIFT_BASE + 500) && (nMotorEncoder[Lift] < LIFT_LOWER)) // If lift is higher than base, let movements be slower
 		{
 			powerFactor = .25;
 		}
 		else
 		{
-			powerFactor = 1;
+			powerFactor = .75;
 		}
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = CTRL1_JOY_LEFT_Y * powerFactor;
+			motor[RightWheels] = (int)(CTRL1_JOY_LEFT_Y * powerFactor);
 		}
 		else
 		{
@@ -389,7 +388,7 @@ void processControls()
 
 		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = CTRL1_JOY_RIGHT_Y * powerFactor;
+			motor[LeftWheels] = (int)(CTRL1_JOY_RIGHT_Y * powerFactor);
 		}
 		else
 		{
@@ -398,59 +397,60 @@ void processControls()
 
 		switch (CTRL1_DPAD)
 		/*																 *
-		* Top = 180 deg Counter-Clockwise *
+		* Top = 180 deg Counter-Clockwise  *
 		* Bottom = 180 deg Clockwise			 *
 		* Right = 90 deg Clockwise				 *
-		* Left = 90 deg Counter-Clockwise *
+		* Left = 90 deg Counter-Clockwise  *
 		*														 		 */
 		{
-			case DPAD_RIGHT:
-				dualMotorTurn(90, 40, CLOCKWISE);
-				//motor[LeftWheels] = -80 * powerFactor;
-				//motor[RightWheels] = 80 * powerFactor;
-				break;
-			case DPAD_LEFT:
-				dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
-				//motor[LeftWheels] = 80 * powerFactor;
-				//motor[RightWheels] = -80 * powerFactor;
-				break;
-			case DPAD_TOP:
-				dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
-				//motor[LeftWheels] = 60 * powerFactor;
-				//motor[RightWheels] = 60 * powerFactor;
-				break;
-			case DPAD_BOTTOM:
-				dualMotorTurn(180, 40, CLOCKWISE);
-				//motor[LeftWheels] = -80 * powerFactor;
-				//motor[RightWheels] = -80 * powerFactor;
-				break;
-				/*
-				case DPAD_TOP_LEFT:
-					motor[LeftWheels] = 50 * powerFactor;
-					motor[RightWheels] = 0;
-					break;
-				case DPAD_BOTTOM_LEFT:
-					motor[LeftWheels] = -50 * powerFactor;
-					motor[RightWheels] = 0;
-					break;
-				case DPAD_BOTTOM_RIGHT:
-					motor[LeftWheels] = 0;
-					motor[RightWheels] = -50 * powerFactor;
-					break;
-				case DPAD_TOP_RIGHT:
-					motor[LeftWheels] = 0;
-					motor[RightWheels] = 50 * powerFactor;
-					break;
-				*/
+		case DPAD_RIGHT:
+			dualMotorTurn(90, 40, CLOCKWISE);
+			//motor[LeftWheels] = -80 * powerFactor;
+			//motor[RightWheels] = 80 * powerFactor;
+			break;
+		case DPAD_LEFT:
+			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
+			//motor[LeftWheels] = 80 * powerFactor;
+			//motor[RightWheels] = -80 * powerFactor;
+			break;
+		case DPAD_TOP:
+			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
+			//motor[LeftWheels] = 60 * powerFactor;
+			//motor[RightWheels] = 60 * powerFactor;
+			break;
+		case DPAD_BOTTOM:
+			dualMotorTurn(180, 40, CLOCKWISE);
+			//motor[LeftWheels] = -80 * powerFactor;
+			//motor[RightWheels] = -80 * powerFactor;
+			break;
+			/*
+			case DPAD_TOP_LEFT:
+			motor[LeftWheels] = 50 * powerFactor;
+			motor[RightWheels] = 0;
+			break;
+			case DPAD_BOTTOM_LEFT:
+			motor[LeftWheels] = -50 * powerFactor;
+			motor[RightWheels] = 0;
+			break;
+			case DPAD_BOTTOM_RIGHT:
+			motor[LeftWheels] = 0;
+			motor[RightWheels] = -50 * powerFactor;
+			break;
+			case DPAD_TOP_RIGHT:
+			motor[LeftWheels] = 0;
+			motor[RightWheels] = 50 * powerFactor;
+			break;
+			*/
 		} // switch (CTRL1_DPAD)
 	} // if(ChooseDriver == MainDriver)
+
 	else if(ChooseDriver == Scorer)
 	{
 		powerFactor = .125;
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = CTRL2_JOY_LEFT_Y * powerFactor;
+			motor[LeftWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
 		}
 		else
 		{
@@ -459,7 +459,7 @@ void processControls()
 
 		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = CTRL2_JOY_RIGHT_Y * powerFactor;
+			motor[RightWheels] = (int)(CTRL2_JOY_RIGHT_Y * powerFactor);
 		}
 		else
 		{
@@ -474,44 +474,44 @@ void processControls()
 			* Right = 90 deg Clockwise				 *
 			* Left = 90 deg Counter-Clockwise *
 			*														 		 */
-			case DPAD_RIGHT:
-				dualMotorTurn(90, 40, CLOCKWISE);
-				//motor[LeftWheels] = -80 * powerFactor;
-				//motor[RightWheels] = 80 * powerFactor;
-				break;
-			case DPAD_LEFT:
-				dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
-				//motor[LeftWheels] = 80 * powerFactor;
-				//motor[RightWheels] = -80 * powerFactor;
-				break;
-			case DPAD_TOP:
-				dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
-				//motor[LeftWheels] = 60 * powerFactor;
-				//motor[RightWheels] = 60 * powerFactor;
-				break;
-			case DPAD_BOTTOM:
-				dualMotorTurn(180, 40, CLOCKWISE);
-				//motor[LeftWheels] = -80 * powerFactor;
-				//motor[RightWheels] = -80 * powerFactor;
-				break;
-				/*
-				case DPAD_TOP_LEFT:
-					motor[LeftWheels] = 50 * powerFactor;
-					motor[RightWheels] = 0;
-					break;
-				case DPAD_BOTTOM_LEFT:
-					motor[LeftWheels] = -50 * powerFactor;
-					motor[RightWheels] = 0;
-					break;
-				case DPAD_BOTTOM_RIGHT:
-					motor[LeftWheels] = 0;
-					motor[RightWheels] = -50 * powerFactor;
-					break;
-				case DPAD_TOP_RIGHT:
-					motor[LeftWheels] = 0;
-					motor[RightWheels] = 50 * powerFactor;
-					break;
-				*/
+		case DPAD_RIGHT:
+			dualMotorTurn(90, 20, CLOCKWISE);
+			//motor[LeftWheels] = -80 * powerFactor;
+			//motor[RightWheels] = 80 * powerFactor;
+			break;
+		case DPAD_LEFT:
+			dualMotorTurn(90, 20, COUNTER_CLOCKWISE);
+			//motor[LeftWheels] = 80 * powerFactor;
+			//motor[RightWheels] = -80 * powerFactor;
+			break;
+		case DPAD_TOP:
+			dualMotorTurn(180, 20, COUNTER_CLOCKWISE);
+			//motor[LeftWheels] = 60 * powerFactor;
+			//motor[RightWheels] = 60 * powerFactor;
+			break;
+		case DPAD_BOTTOM:
+			dualMotorTurn(180, 20, CLOCKWISE);
+			//motor[LeftWheels] = -80 * powerFactor;
+			//motor[RightWheels] = -80 * powerFactor;
+			break;
+			/*
+			case DPAD_TOP_LEFT:
+			motor[LeftWheels] = 50 * powerFactor;
+			motor[RightWheels] = 0;
+			break;
+			case DPAD_BOTTOM_LEFT:
+			motor[LeftWheels] = -50 * powerFactor;
+			motor[RightWheels] = 0;
+			break;
+			case DPAD_BOTTOM_RIGHT:
+			motor[LeftWheels] = 0;
+			motor[RightWheels] = -50 * powerFactor;
+			break;
+			case DPAD_TOP_RIGHT:
+			motor[LeftWheels] = 0;
+			motor[RightWheels] = 50 * powerFactor;
+			break;
+			*/
 		} // switch (CTRL2_DPAD)
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
@@ -585,7 +585,7 @@ void moveLift(int encoderCounts)
 			// We are now below the height of the lower base and need to slow down to let the last segment fall slowly
 			// This should only execute when the target is the base of the lift
 			nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-			motor[Lift] = -20;
+			motor[Lift] = -30;
 			while(nMotorRunState[Lift] != runStateIdle)
 			{
 				//let the motor reach the target
