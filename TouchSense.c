@@ -15,10 +15,9 @@
 
 task main()
 {
-
- while(1){
-   if(SensorValue[LiftLimitSensor]!=0){
+ while(1)
+ {
+   if(SensorValue[LiftLimitSensor]!=0)
      playTone(5000,5);
-   }
  }
 }
