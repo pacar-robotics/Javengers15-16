@@ -49,7 +49,7 @@
 
 // Lift
 #define LIFT_MAX 11100
-#define LIFT_TOP 11050 // Height too low
+#define LIFT_TOP 11050
 #define LIFT_MIDDLE 7500
 #define LIFT_LOWER 3600
 #define LIFT_BASE 0
@@ -61,7 +61,7 @@
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 158 // Straining
+#define GOAL_HOOKS_CLOSED 158
 
 //Threshold for Joysticks, so it doesn't move when thumbs are slightly touching it
 #define JOYSTICK_THRESHOLD 10
