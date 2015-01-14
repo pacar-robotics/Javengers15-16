@@ -19,42 +19,39 @@
 //#include "JoystickDriver.c"
 #include "hitechnic-irseeker-v2.h"
 
-//Unknowns (For Now)
-#define FOO 0
+// Robot and Field Definitions
 
-/* Robot and Field Definitions */
-
-//IR Frequencies
+// IR Frequencies
 #define IR600 DSP_600
 #define IR1200 DSP_1200
 
-//Buttons
+// Buttons
 #define LEFT_BUTTON 2
 #define RIGHT_BUTTON 1
 
-//Measurements
+// Measurements
 #define DIAMETER 7.62
 #define TRACK_DISTANCE 48
 #define RAMP_DISTANCE 150
 
-//Directions
+// Directions
 #define FORWARD true
 #define BACKWARD false
 #define CLOCKWISE true
 #define COUNTER_CLOCKWISE false
 
-//Lift
+// Lift
 #define LIFT_MAX 22300
 #define LIFT_TOP 22250
 #define LIFT_MIDDLE 14350
 #define LIFT_LOWER 7150
 #define LIFT_BASE 0
 
-//Gate
+// Gate
 #define GATE_CLOSED 50
 #define GATE_OPEN 150
 
-//Goal Finger Positions
+// Goal Finger Positions
 #define GOAL_HOOKS_OPEN 10
 #define GOAL_HOOKS_CLOSED 180
 
@@ -79,8 +76,8 @@ void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
 void kickstand();
-void moveLift(int encoderCounts);
-void displayIRBeaconValues();
+//void moveLift(int encoderCounts);
+//void displayIRBeaconValues();
 
 //for irSeeker
 tHTIRS2 irSeeker;
@@ -89,10 +86,10 @@ tHTIRS2DSPMode irFrequency;
 bool isDelay;
 
 enum StartingPositionEnum {ParkingZone, Ramp};
-enum LiftStateEnum {Running, Stopped};
+//enum LiftStateEnum {Running, Stopped};
 
 StartingPositionEnum StartingPosition;
-LiftStateEnum LiftState;
+//LiftStateEnum LiftState;
 
 task main()
 {
@@ -182,6 +179,7 @@ void kickstand()	//kicks kickstand
 	}
 }
 
+/*
 void moveLift(int encoderCounts)
 {
 	if(nMotorEncoder[Lift]>encoderCounts)
@@ -215,7 +213,7 @@ void moveLift(int encoderCounts)
 	motor[Lift]=0;
 	LiftState=Stopped;
 }
-
+*/
 void calcMove(float centimeters, float power, bool direction, bool isRegulated)
 {
 	float encoder_counts;
@@ -307,9 +305,10 @@ void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turn
 
 
 	//set back to unregulated gmotors just so we dont have the wrong mode when exiting
-	nMotorPIDSpeedCtrl[LeftWheels]=mtrNoReg;
-	nMotorPIDSpeedCtrl[RightWheels]=mtrNoReg;
+	nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
+	nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
 }
+
 void readChoices()
 {
 	TFileIOResult nIoResult;
@@ -320,13 +319,14 @@ void readChoices()
 	short delayShort;
 
 	OpenRead(myFileHandle, nIoResult, DATA_FILE_NAME, myFileSize);
-	if(nIoResult)
+
+	if(nIoResult) // Error in opening file for read
 	{
-		//error in opening file for read
-		//need back up plan
+		// NEED A BACK-UP PLAN
 		playTone(5000, 5);
 	  stopAllTasks();
 	}
+
 	ReadShort(myFileHandle, nIoResult, irChoice);
 	ReadShort(myFileHandle, nIoResult, startingPositionShort);
 	ReadShort(myFileHandle, nIoResult, delayShort);
@@ -340,6 +340,7 @@ void readChoices()
 	{
 		irFrequency = IR600;
 	}
+
 	if(startingPositionShort == RAMP_START)
 	{
 		StartingPosition = Ramp;
@@ -348,6 +349,7 @@ void readChoices()
 	{
 		StartingPosition = ParkingZone;
 	}
+
 	if(delayShort == NEED_DELAY)
 	{
 		isDelay = true;
@@ -356,16 +358,15 @@ void readChoices()
 	{
 		isDelay = false;
 	}
+
 	eraseDisplay();
-	displayTextLine(1, "Freq:%d", irChoice);
-	displayTextLine(2, "Start:%s", (startingPositionShort == RAMP_START ? "Ramp" : "PZ"));
-	displayTextLine(3, "Delay:%s", (delayShort == NEED_DELAY ? "Yes" : "No"));
+	displayTextLine(1, "Freq: %d", irChoice);
+	displayTextLine(2, "Start: %s", (startingPositionShort == RAMP_START ? "Ramp" : "PZ"));
+	displayTextLine(3, "Delay: %s", (delayShort == NEED_DELAY ? "Yes" : "No"));
 	wait1Msec(5000);
 	eraseDisplay();
 }
-
-
-
+/*
 void displayIRBeaconValues()
 {
 	int Position;
@@ -375,7 +376,7 @@ void displayIRBeaconValues()
 		readSensor(&irSeeker);
 		displayTextLine(1, "Sensors");
 		displayTextLine(2, "Dir-%d EnhDir-%d",irSeeker.acDirection,irSeeker.enhDirection);
-		displayTextLine(3, "1-%d 2-%d 3-%d",
+		displayTextLine(3, "1-f%d 2-%d 3-%d",
 		irSeeker.acValues[0],
 		irSeeker.acValues[1],
 		irSeeker.acValues[2],
@@ -402,3 +403,4 @@ void displayIRBeaconValues()
 		wait1Msec(500);
 	}
 }
+*/
