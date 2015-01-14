@@ -20,10 +20,6 @@
 #define BTN_ROTATESPINDLE_FORWARD joy1Btn(7)
 #define BTN_ROTATESPINDLE_BACKWARD joy1Btn(8)
 #define BTN_GRAB_GOAL	joy1Btn(6)
-//#define CTRL1_BUTTON_LEFT joy1Btn(1)
-//#define CTRL1_BUTTON_BOTTOM joy1Btn(2)
-//#define CTRL1_BUTTON_TOP joy1Btn(3)
-//#define CTRL1_BUTTON_RIGHT joy1Btn(4)
 
 // Controller 2 Buttons
 #define BTN_LIFT_LOWERGOAL joy2Btn(1)
@@ -37,14 +33,10 @@
 // Controller 1 Joysticks
 #define CTRL1_JOY_LEFT_Y joystick.joy1_y1
 #define CTRL1_JOY_RIGHT_Y joystick.joy1_y2
-//#define CTRL1_JOY_LEFT_X joystick.joy1_x1
-//#define CTRL1_JOY_RIGHT_X joystick.joy1_x2
 
 // Controller 2 Joysticks
 #define CTRL2_JOY_LEFT_Y joystick.joy2_y1
 #define CTRL2_JOY_RIGHT_Y	joystick.joy2_y2
-//#define CTRL2_JOY_LEFT_X joystick.joy2_x1
-//#define CTRL2_JOY_RIGHT_X joystick.joy2_x2
 
 // Controllers' D-Pads.
 #define CTRL1_DPAD joystick.joy1_TopHat // Controller 1 Directional Pad
@@ -54,26 +46,22 @@
 #define DPAD_RIGHT 2
 #define DPAD_BOTTOM 4
 #define DPAD_LEFT 6
-//#define DPAD_TOP_RIGHT 1
-//#define DPAD_BOTTOM_RIGHT 3
-//#define DPAD_BOTTOM_LEFT 5
-//#define DPAD_TOP_LEFT 7
 
 // Lift
-#define LIFT_MAX 10800
-#define LIFT_TOP 10750
-#define LIFT_MIDDLE 7100
+#define LIFT_MAX 11100
+#define LIFT_TOP 11050 // Height too low
+#define LIFT_MIDDLE 7500
 #define LIFT_LOWER 3600
 #define LIFT_BASE 0
 #define LIFT_HOLD_POSITION_POWER 5
 
 //Gate
-#define GATE_CLOSED 0
-#define GATE_OPEN 180
+#define GATE_CLOSED 180
+#define GATE_OPEN 10
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 180
+#define GOAL_HOOKS_CLOSED 158 // Straining
 
 //Threshold for Joysticks, so it doesn't move when thumbs are slightly touching it
 #define JOYSTICK_THRESHOLD 10
@@ -143,10 +131,10 @@ void initializeRobot ()
 
 void clrTimers()
 {
-	clearTimer (T1);	//timer used for Spindle
-	clearTimer (T2);	//timer used for Lift
-	clearTimer (T3);	//timer used for Gate
-	clearTimer (T4);	//timer used for Hooks
+	clearTimer (T1);	// Timer used for Spindle
+	clearTimer (T2);	// Lift
+	clearTimer (T3);	// Gate
+	clearTimer (T4);	// Hooks
 }
 
 task liftCheckMAX ()
@@ -396,51 +384,23 @@ void processControls()
 		}
 
 		switch (CTRL1_DPAD)
-		/*																 *
-		* Top = 180 deg Counter-Clockwise  *
-		* Bottom = 180 deg Clockwise			 *
-		* Right = 90 deg Clockwise				 *
-		* Left = 90 deg Counter-Clockwise  *
-		*														 		 */
 		{
 		case DPAD_RIGHT:
 			dualMotorTurn(90, 40, CLOCKWISE);
-			//motor[LeftWheels] = -80 * powerFactor;
-			//motor[RightWheels] = 80 * powerFactor;
 			break;
+
 		case DPAD_LEFT:
 			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
-			//motor[LeftWheels] = 80 * powerFactor;
-			//motor[RightWheels] = -80 * powerFactor;
 			break;
+
 		case DPAD_TOP:
 			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
-			//motor[LeftWheels] = 60 * powerFactor;
-			//motor[RightWheels] = 60 * powerFactor;
 			break;
+
 		case DPAD_BOTTOM:
 			dualMotorTurn(180, 40, CLOCKWISE);
-			//motor[LeftWheels] = -80 * powerFactor;
-			//motor[RightWheels] = -80 * powerFactor;
 			break;
-			/*
-			case DPAD_TOP_LEFT:
-			motor[LeftWheels] = 50 * powerFactor;
-			motor[RightWheels] = 0;
-			break;
-			case DPAD_BOTTOM_LEFT:
-			motor[LeftWheels] = -50 * powerFactor;
-			motor[RightWheels] = 0;
-			break;
-			case DPAD_BOTTOM_RIGHT:
-			motor[LeftWheels] = 0;
-			motor[RightWheels] = -50 * powerFactor;
-			break;
-			case DPAD_TOP_RIGHT:
-			motor[LeftWheels] = 0;
-			motor[RightWheels] = 50 * powerFactor;
-			break;
-			*/
+
 		} // switch (CTRL1_DPAD)
 	} // if(ChooseDriver == MainDriver)
 
@@ -468,50 +428,21 @@ void processControls()
 
 		switch (CTRL2_DPAD)
 		{
-			/*																 *
-			* Top = 180 deg Counter-Clockwise *
-			* Bottom = 180 deg Clockwise			 *
-			* Right = 90 deg Clockwise				 *
-			* Left = 90 deg Counter-Clockwise *
-			*														 		 */
 		case DPAD_RIGHT:
-			dualMotorTurn(90, 20, CLOCKWISE);
-			//motor[LeftWheels] = -80 * powerFactor;
-			//motor[RightWheels] = 80 * powerFactor;
+			dualMotorTurn(90, 40, CLOCKWISE);
 			break;
+
 		case DPAD_LEFT:
-			dualMotorTurn(90, 20, COUNTER_CLOCKWISE);
-			//motor[LeftWheels] = 80 * powerFactor;
-			//motor[RightWheels] = -80 * powerFactor;
+			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
 			break;
+
 		case DPAD_TOP:
-			dualMotorTurn(180, 20, COUNTER_CLOCKWISE);
-			//motor[LeftWheels] = 60 * powerFactor;
-			//motor[RightWheels] = 60 * powerFactor;
+			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
 			break;
+
 		case DPAD_BOTTOM:
-			dualMotorTurn(180, 20, CLOCKWISE);
-			//motor[LeftWheels] = -80 * powerFactor;
-			//motor[RightWheels] = -80 * powerFactor;
+			dualMotorTurn(180, 40, CLOCKWISE);
 			break;
-			/*
-			case DPAD_TOP_LEFT:
-			motor[LeftWheels] = 50 * powerFactor;
-			motor[RightWheels] = 0;
-			break;
-			case DPAD_BOTTOM_LEFT:
-			motor[LeftWheels] = -50 * powerFactor;
-			motor[RightWheels] = 0;
-			break;
-			case DPAD_BOTTOM_RIGHT:
-			motor[LeftWheels] = 0;
-			motor[RightWheels] = -50 * powerFactor;
-			break;
-			case DPAD_TOP_RIGHT:
-			motor[LeftWheels] = 0;
-			motor[RightWheels] = 50 * powerFactor;
-			break;
-			*/
 		} // switch (CTRL2_DPAD)
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
