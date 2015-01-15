@@ -14,14 +14,7 @@
 #define NEED_DELAY 1
 #define NO_DELAY 0
 
-void chooseProgram();
-
 task main()
-{
-	chooseProgram();
-}
-
-void chooseProgram()
 {
 	TFileIOResult nIoResult;
 	TFileHandle myFileHandle;
@@ -151,4 +144,4 @@ void chooseProgram()
 	{
 		playTone(10000, 5);
 	}
-}//end chooseProgram
+}

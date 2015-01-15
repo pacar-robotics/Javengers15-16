@@ -48,8 +48,8 @@
 #define LIFT_BASE 0
 
 // Gate
-#define GATE_CLOSED 50
-#define GATE_OPEN 150
+#define GATE_CLOSED 180
+#define GATE_OPEN 10
 
 // Goal Finger Positions
 #define GOAL_HOOKS_OPEN 10
@@ -120,7 +120,7 @@ void initializeRobot()
 	servo[Gate] = GATE_CLOSED;
 	servo[Hooks] = GOAL_HOOKS_OPEN;
 	initSensor(&irSeeker, S2);
-	wait1Msec(1500);
+	wait1Msec(100);
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
 }
@@ -139,8 +139,8 @@ void rampFunction() //ramp, goals
 	//moveLift(LIFT_BASE);
 	dualMotorTurn(30, 40, CLOCKWISE);
 	calcMove(215, 90, FORWARD, REGULATED);
-	dualMotorTurn(205, 40, COUNTER_CLOCKWISE);
-	servo[Hooks] = GOAL_HOOKS_OPEN; // Lets go of goal and leaves it in PZ
+	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
+	servo[Hooks] = GOAL_HOOKS_OPEN; // Let go of goal and leaves it in PZ
 	calcMove(250, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, CLOCKWISE);
 }
