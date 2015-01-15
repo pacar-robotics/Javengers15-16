@@ -48,8 +48,8 @@
 #define DPAD_LEFT 6
 
 // Lift
-#define LIFT_MAX 11100
-#define LIFT_TOP 11050
+#define LIFT_MAX 11400
+#define LIFT_TOP 11350
 #define LIFT_MIDDLE 7500
 #define LIFT_LOWER 3600
 #define LIFT_BASE 0
