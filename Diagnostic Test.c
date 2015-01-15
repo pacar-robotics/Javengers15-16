@@ -51,17 +51,16 @@ void testLiftLimitSensor();
 
 task main()
 {
-<<<<<<< HEAD
-=======
+
 	bool hasErrors = false;
-	/*bool leftWheelsError = false;
+	bool leftWheelsError = false;
 	bool rightWheelsError = false;
 	bool liftError = false;
 	bool spindleError = false;
 	bool hooksError = false;
 	bool gateError = false;
 	bool touchSensorError = false;*/
->>>>>>> origin/autonomous-dev
+
 
 
 	testNXTBattery();
@@ -168,16 +167,16 @@ void testWheelMotors()
 
 	// test LeftWheels
 
-<<<<<<< HEAD
+
 	displayTextLine(1, "Testing Left Wheels ...");
 	wait1Msec(1000);
-=======
+
 	displayTextLine(1, "Current Battery Level:%f", nImmediateBatteryLevel); //in millivolts
 	displayTextLine(2, "External Battery Voltage:%f", externalBattery);
 	wait1Msec(500);
 
 	eraseDisplay();
->>>>>>> origin/autonomous-dev
+
 
 	motor[LeftWheels] = 20;
 	wait1Msec(500);
@@ -405,7 +404,7 @@ void testIRBeacon()
 	initSensor(&irSeeker, S2);
 	wait1Msec(1000);
 	irSeeker.mode=DSP_1200;
-=======
+
 	displayTextLine(1, "Testing Gate");
 	servo[Gate] = 50;
 	wait1Msec(1000);
@@ -446,7 +445,7 @@ void testIRBeacon()
 	}
 
 	eraseDisplay();
->>>>>>> origin/autonomous-dev
+
 
 	displayTextLine(2, "Set IRBeacon=1200");
 	displayTextLine(3, "Hold IRB in front");
@@ -473,14 +472,14 @@ void testIRBeacon()
 
 }
 
-<<<<<<< HEAD
+
 void testLiftLimitSensor()
 {
 
 	eraseDisplay();
 	//test for Touch Sensor
 
-	displayTextLine(1, "Testing LiftLimir Sensor...");
+	displayTextLine(1, "Testing LiftLimit Sensor...");
 	wait1Msec(1000);
 	displayTextLine(2, "Press LiftLimit Sensor..");
 	clearTimer(T1);
@@ -510,10 +509,4 @@ void waitForButtonPress()
 	}
 	//absorbing button press buffer persistence
 	wait1Msec(1000);
-=======
-
-	playTone(3000, 5);
-	wait1Msec(5000);
->>>>>>> origin/autonomous-dev
-
 }
