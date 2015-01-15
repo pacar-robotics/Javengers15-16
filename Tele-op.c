@@ -362,7 +362,7 @@ void processControls()
 		}
 		else
 		{
-			powerFactor = .75;
+			powerFactor = .6;
 		}
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
