@@ -59,7 +59,7 @@ task main()
 	bool spindleError = false;
 	bool hooksError = false;
 	bool gateError = false;
-	bool touchSensorError = false;*/
+	bool touchSensorError = false;
 
 
 
@@ -187,17 +187,17 @@ void testWheelMotors()
 		// either motor or encoder is faulty
 
 		hasErrors = true;
-<<<<<<< HEAD
+//<<<<<<< HEAD
 		displayTextLine(3, "Left wheels error !!!...");
 		playTone(100, 5);		//wait for acknowledgement
 		waitForButtonPress();
 
-=======
+//=======
 		//leftWheelsError = true;
 		displayTextLine(2, "Left wheels error");
 		playTone(100, 5);
 		wait1Msec(2000);
->>>>>>> origin/autonomous-dev
+//>>>>>>> origin/autonomous-dev
 	}
 
 
@@ -217,24 +217,24 @@ void testWheelMotors()
 		// either motor or encoder is faulty
 
 		hasErrors = true;
-<<<<<<< HEAD
+//<<<<<<< HEAD
 		displayTextLine(3, "Right wheels error....");
-=======
+//=======
 		//rightWheelsError = true;
 		displayTextLine(2, "Right wheels error");
->>>>>>> origin/autonomous-dev
+//>>>>>>> origin/autonomous-dev
 		playTone(500, 5);
 		//wait for acknowledgement
 		waitForButtonPress();
 	}
-<<<<<<< HEAD
+//<<<<<<< HEAD
 }
 
 void testLiftMotor()
 {
-=======
+//=======
 
->>>>>>> origin/autonomous-dev
+//>>>>>>> origin/autonomous-dev
 	eraseDisplay();
 
 	motor[Lift]=0;
@@ -255,12 +255,12 @@ void testLiftMotor()
 		// either motor or encoder is faulty
 
 		hasErrors = true;
-<<<<<<< HEAD
+//<<<<<<< HEAD
 		displayTextLine(3, "Lift error....");
-=======
+//=======
 		//liftError = true;
 		displayTextLine(2, "Lift error");
->>>>>>> origin/autonomous-dev
+//>>>>>>> origin/autonomous-dev
 		playTone(1000, 5);
 		//wait for acknowledgement
 		waitForButtonPress();
@@ -274,13 +274,13 @@ void testLiftMotor()
 
 	}
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 }
 
 void testSpindleMotor()
 {
-=======
->>>>>>> origin/autonomous-dev
+//=======
+//>>>>>>> origin/autonomous-dev
 	eraseDisplay();
 
 	// test Spindle
@@ -331,7 +331,7 @@ void testHookServo()
 
 	// test Hooks
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	displayTextLine(1, "Testing Goal Hooks...");
 	wait1Msec(1000);
 	displayTextLine(2, "Conf GoalHook Close..");
@@ -348,7 +348,7 @@ void testHookServo()
 
 void testGateServo()
 {
-=======
+//=======
 	servo[Hooks] = 180;
 	displayTextLine(1, "Testing Hooks");
 	wait1Msec(1000);
@@ -368,13 +368,13 @@ void testGateServo()
 	}
 
 	eraseDisplay();
->>>>>>> origin/autonomous-dev
+//>>>>>>> origin/autonomous-dev
 
 	eraseDisplay();
 	// test Gate
 	//set servos to starting position
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	servo[Gate]=GATE_CLOSED;
 
 
