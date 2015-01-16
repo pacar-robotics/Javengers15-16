@@ -120,7 +120,6 @@ void initializeRobot()
 	servo[Gate] = GATE_CLOSED;
 	servo[Hooks] = GOAL_HOOKS_OPEN;
 	initSensor(&irSeeker, S2);
-	wait1Msec(100);
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
 }
@@ -321,7 +320,6 @@ void readChoices()
 	displayTextLine(1, "Freq: %d", irChoice);
 	displayTextLine(2, "Start: %s", (startingPositionShort == RAMP_START ? "Ramp" : "PZ"));
 	displayTextLine(3, "Delay: %s", (delayShort == NEED_DELAY ? "Yes" : "No"));
-	wait1Msec(2500);
 	eraseDisplay();
 }
 
