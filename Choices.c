@@ -53,13 +53,12 @@ task main()
 		//ignore everything until left or right arrow pressed.
 		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
 		{
-			//intentional
+			// Intentional
 		}
 
 		//set values
 		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
-
 			irChoice = 600;
 		}
 		else if(nNxtButtonPressed == RIGHT_BUTTON)
@@ -74,8 +73,8 @@ task main()
 		//choose starting position
 		//left button for parking zone, right button for ramp
 		displayTextLine(1, "Starting Pos:");
-		displayTextLine(2,"Left==PZ");
-		displayTextLine(3,"Right==Ramp");
+		displayTextLine(2,"Left = PZ");
+		displayTextLine(3,"Right = Ramp");
 
 		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
 		{
@@ -87,7 +86,6 @@ task main()
 			startingPositionChoice = "PZ";
 			startingPositionShort = PARKING_ZONE;
 		}
-
 		else if (nNxtButtonPressed == RIGHT_BUTTON)
 		{
 			startingPositionChoice = "Ramp";
@@ -97,12 +95,9 @@ task main()
 		wait1Msec(500);
 		eraseDisplay();
 
-
-		//choose delay
-		//left button for yes, right button for no
 		displayTextLine(1, "Need delay?");
-		displayTextLine(2, "Left == Yes");
-		displayTextLine(3, "Right== No");
+		displayTextLine(2, "Left = Yes");
+		displayTextLine(3, "Right = No");
 
 
 		//ignore everything except left or right arrow.
@@ -130,8 +125,8 @@ task main()
 		displayTextLine(1, "Freq: %d", irChoice);
 		displayTextLine(2, "Start pos: %s", startingPositionChoice);
 		displayTextLine(3, "Delay: %s", delayChoice);
-		displayTextLine(4, "Left == Correct");
-		displayTextLine(5, "Right == Redo");
+		displayTextLine(4, "Left =  Correct");
+		displayTextLine(5, "Right = Redo");
 
 		//ignore everything except left and right arrows.
 
@@ -140,14 +135,14 @@ task main()
 			//intentional
 		}
 
-		if(nNxtButtonPressed == LEFT_BUTTON)
+		if(nNxtButtonPressed == LEFT_BUTTON) // Confirmed
 		{
-			//confirmed
 			choicesConfirmed = true;
 		}
 	}//!choices confirmed
 
 	OpenWrite(myFileHandle, nIoResult, DATA_FILE_NAME, myFileSize);
+
 	if(nIoResult)
 	{
 		//error in opening file for write
