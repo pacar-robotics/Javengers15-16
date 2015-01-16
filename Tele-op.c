@@ -313,19 +313,19 @@ void processControls()
 
 	if(BTN_LIFT_BASE)
 	{
-		moveLift(LIFT_BASE);
+		moveLift(LIFT_BASE);	//moves lift to base
 	}
 	if(BTN_LIFT_LOWERGOAL)
 	{
-		moveLift(LIFT_LOWER);
+		moveLift(LIFT_LOWER);	//moves lift to lower goal height
 	}
 	if(BTN_LIFT_MIDDLEGOAL)
 	{
-		moveLift(LIFT_MIDDLE);
+		moveLift(LIFT_MIDDLE);	//moves lift to middle goal height
 	}
 	if(BTN_LIFT_TOPGOAL)
 	{
-		moveLift(LIFT_TOP);
+		moveLift(LIFT_TOP);	//moves lift to top goal height
 	}
 
 	if(BTN_GRAB_GOAL)
@@ -367,7 +367,7 @@ void processControls()
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = (int)(CTRL1_JOY_LEFT_Y * powerFactor);
+			motor[RightWheels] = (int)(CTRL1_JOY_LEFT_Y * powerFactor);	//multiplied by power factor to become slower (less jerking)
 		}
 		else
 		{
@@ -386,19 +386,19 @@ void processControls()
 		switch (CTRL1_DPAD)
 		{
 		case DPAD_RIGHT:
-			dualMotorTurn(90, 40, CLOCKWISE);
+			dualMotorTurn(90, 40, CLOCKWISE);	//90 degrees clockwise
 			break;
 
 		case DPAD_LEFT:
-			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
+			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);	//90 degrees counter clockwise
 			break;
 
 		case DPAD_TOP:
-			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
+			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);	//180 degrees counter clockwise
 			break;
 
 		case DPAD_BOTTOM:
-			dualMotorTurn(180, 40, CLOCKWISE);
+			dualMotorTurn(180, 40, CLOCKWISE);	//180 degrees clockwise
 			break;
 
 		} // switch (CTRL1_DPAD)
@@ -406,7 +406,7 @@ void processControls()
 
 	else if(ChooseDriver == Scorer)
 	{
-		powerFactor = .125;
+		powerFactor = .125;	//for fine movements to adjust for scoring
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
