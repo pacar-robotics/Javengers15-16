@@ -1,3 +1,8 @@
+/*
+			Choices.c
+												*/
+
+//file we are going to write on
 #define DATA_FILE_NAME "choices.txt"
 
 //IR Frequencies
@@ -26,6 +31,7 @@ task main()
 	string delayChoice;
 	short delayShort;
 	bool choicesConfirmed = false;
+
 	//deleting old file
 	Delete(DATA_FILE_NAME, nIoResult);
 	if(nIoResult)
@@ -33,6 +39,7 @@ task main()
 		//error - could not delete file
 		playTone(1000, 5);
 	}
+
 	while(!choicesConfirmed)
 	{
 		wait1Msec(500); //need a half second delay to suppress multiple reads of the same key
@@ -44,10 +51,12 @@ task main()
 		displayTextLine(3,"Right==1200");
 
 		//ignore everything until left or right arrow pressed.
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		{
 			//intentional
 		}
 
+		//set values
 		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
 
@@ -68,7 +77,8 @@ task main()
 		displayTextLine(2,"Left==PZ");
 		displayTextLine(3,"Right==Ramp");
 
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		{
 			//intentional
 		}
 
@@ -76,11 +86,14 @@ task main()
 		{
 			startingPositionChoice = "PZ";
 			startingPositionShort = PARKING_ZONE;
-		}else if (nNxtButtonPressed == RIGHT_BUTTON)
+		}
+
+		else if (nNxtButtonPressed == RIGHT_BUTTON)
 		{
 			startingPositionChoice = "Ramp";
 			startingPositionShort = RAMP_START;
 		}
+
 		wait1Msec(500);
 		eraseDisplay();
 
@@ -93,19 +106,22 @@ task main()
 
 
 		//ignore everything except left or right arrow.
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		{
 			//intentional
 		}
+
 		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
 			delayChoice = "Yes";
 			delayShort = NEED_DELAY;
-		}//if delay
+		}
 		else if (nNxtButtonPressed == RIGHT_BUTTON)
 		{
 			delayChoice = "None";
 			delayShort = NO_DELAY;
 		}
+
 		wait1Msec(500);
 		eraseDisplay();
 
@@ -119,7 +135,8 @@ task main()
 
 		//ignore everything except left and right arrows.
 
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON)){
+		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		{
 			//intentional
 		}
 
@@ -129,6 +146,7 @@ task main()
 			choicesConfirmed = true;
 		}
 	}//!choices confirmed
+
 	OpenWrite(myFileHandle, nIoResult, DATA_FILE_NAME, myFileSize);
 	if(nIoResult)
 	{
@@ -136,10 +154,13 @@ task main()
 		playTone(5000, 5);
 		stopAllTasks();
 	}
+
+	//writing on to file
 	WriteShort(myFileHandle, nIoResult, irChoice);
 	WriteShort(myFileHandle, nIoResult, startingPositionShort);
 	WriteShort(myFileHandle, nIoResult, delayShort);
 	Close(myFileHandle, nIoResult);
+
 	if(nIoResult)
 	{
 		playTone(10000, 5);
