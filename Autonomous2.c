@@ -101,6 +101,7 @@ task main()
 	irSeeker.mode = (irFrequency == IR600 ? IR600 : IR1200);
 	waitForStart();
 
+	// Robot specific code
 	if(isDelay)	//if there is a delay wait
 	{
 		wait1Msec(DELAY_TIME);
@@ -146,7 +147,7 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 {
 	readSensor(&irSeeker); // Reads the IR sensor values
 
-	switch(irSeeker.acDirection) // NEED TO RE-CHECK VALUES
+	switch(irSeeker.acDirection)
 	{
 		case 0:	// for Position 1
 			calcMove(40, 50, FORWARD, REGULATED);
