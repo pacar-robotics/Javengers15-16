@@ -32,7 +32,7 @@
 // Measurements
 #define DIAMETER 7.62
 #define TRACK_DISTANCE 48
-#define RAMP_DISTANCE 150
+#define RAMP_DISTANCE 155
 
 // Directions
 #define FORWARD true
@@ -130,8 +130,8 @@ void initializeRobot()
 
 
 	initSensor(&irSeeker, S2);
-  wait1Msec(500);
-  //wait for stability of sensor before setting the mode.
+	wait1Msec(500);
+	//wait for stability of sensor before setting the mode.
 
 	// If irFrequency equals IR600, then let it stay IR600, else, let it be IR1200
 	//irSeeker.mode = (irFrequency == IR600 ? IR600 : IR1200);
@@ -152,10 +152,11 @@ void rampFunction() //ramp, goals
 	calcMove(60, 90, BACKWARD, REGULATED);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
 	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
-	dualMotorTurn(30, 40, CLOCKWISE);
-	calcMove(215, 90, FORWARD, REGULATED);
+	dualMotorTurn(40, 40, CLOCKWISE);
+	calcMove(223, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
 	servo[Hooks] = GOAL_HOOKS_OPEN; // Let go of goal and leaves it in PZ
+	dualMotorTurn(10, 35, COUNTER_CLOCKWISE);
 	calcMove(250, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, CLOCKWISE);
 }
@@ -166,30 +167,34 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 
 	switch(irSeeker.acDirection)
 	{
-		case 0:	// for Position 1
+
+	case 3:	// for Position 2
+		calcMove(110, 50, FORWARD, REGULATED);
+		dualMotorTurn(30, 40, CLOCKWISE);
+		calcMove(25, 50, FORWARD, REGULATED);
+		dualMotorTurn(45, 70, CLOCKWISE);
+		break;
+
+	case 5:	// for Position 3
+		if(irSeeker.enhStrength < 54)
+		{
 			calcMove(40, 50, FORWARD, REGULATED);
 			dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
 			calcMove(105, 50, FORWARD, REGULATED);
 			dualMotorTurn(130, 40, CLOCKWISE);
 			calcMove(55, 60, FORWARD, REGULATED);
 			dualMotorTurn(90, 40, CLOCKWISE);
-			break;
-
-		case 3:	// for Position 2
-			calcMove(110, 50, FORWARD, REGULATED);
-			dualMotorTurn(30, 40, CLOCKWISE);
-			calcMove(25, 50, FORWARD, REGULATED);
-			dualMotorTurn(45, 70, CLOCKWISE);
-			break;
-
-		case 5:	// for Position 3
+		}
+		if(irSeeker.enhStrength > 54)
+		{
 			calcMove(30, 50, FORWARD, REGULATED);
 			dualMotorTurn(30, 40, CLOCKWISE);
 			calcMove(60, 50, FORWARD, REGULATED);
 			dualMotorTurn(32, 40, COUNTER_CLOCKWISE);
 			calcMove(67, 50, FORWARD, REGULATED);
 			dualMotorTurn(90, 40, CLOCKWISE);
-			break;
+		}
+		break;
 	}	//switch
 }
 
@@ -271,8 +276,8 @@ void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turn
 
 	while((nMotorRunState[LeftWheels] != runStateIdle) && (nMotorRunState[RightWheels] != runStateIdle))
 	{
-  	//do nothing while we wait for motors to spin to correct angles.
-  }
+		//do nothing while we wait for motors to spin to correct angles.
+	}
 
 	//stop the motors
 	motor[LeftWheels] = 0;
@@ -299,7 +304,7 @@ void readChoices()
 	{
 		// NEED A BACK-UP PLAN
 		playTone(5000, 5);
-	  stopAllTasks();
+		stopAllTasks();
 	}
 
 	//reads choices
