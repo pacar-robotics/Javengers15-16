@@ -95,10 +95,10 @@ StartingPositionEnum StartingPosition;
 task main()
 {
 	initializeRobot();
-	readChoices(); // Reads choices from a file that is written in from a program called Choices
 
-	// If irFrequency equals IR600, then let it stay IR600, else, let it be IR1200
-	irSeeker.mode = (irFrequency == IR600 ? IR600 : IR1200);
+
+
+
 	waitForStart();
 
 	// Robot specific code
@@ -123,7 +123,24 @@ void initializeRobot()
 {
 	servo[Gate] = GATE_CLOSED;
 	servo[Hooks] = GOAL_HOOKS_OPEN;
+
+
+
+	readChoices(); // Reads choices from a file that is written in from a program called Choices
+
+
 	initSensor(&irSeeker, S2);
+  wait1Msec(500);
+  //wait for stability of sensor before setting the mode.
+
+	// If irFrequency equals IR600, then let it stay IR600, else, let it be IR1200
+	//irSeeker.mode = (irFrequency == IR600 ? IR600 : IR1200);
+	//resolved: FTC is at 1200.
+
+	irSeeker.mode=DSP_1200;
+	wait1Msec(500);
+
+
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
 }
@@ -159,7 +176,7 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 			break;
 
 		case 3:	// for Position 2
-			calcMove(100, 50, FORWARD, REGULATED);
+			calcMove(110, 50, FORWARD, REGULATED);
 			dualMotorTurn(30, 40, CLOCKWISE);
 			calcMove(25, 50, FORWARD, REGULATED);
 			dualMotorTurn(45, 70, CLOCKWISE);
