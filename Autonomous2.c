@@ -21,10 +21,6 @@
 
 // Robot and Field Definitions
 
-// IR Frequencies
-#define IR600 DSP_600
-#define IR1200 DSP_1200
-
 // Buttons
 #define LEFT_BUTTON 2
 #define RIGHT_BUTTON 1
@@ -87,22 +83,16 @@ tHTIRS2DSPMode irFrequency;
 bool isDelay;
 
 enum StartingPositionEnum {ParkingZone, Ramp};
-//enum LiftStateEnum {Running, Stopped};
-
 StartingPositionEnum StartingPosition;
-//LiftStateEnum LiftState;
 
 task main()
 {
 	initializeRobot();
 
-
-
-
 	waitForStart();
 
 	// Robot specific code
-	if(isDelay)	//if there is a delay wait
+	if(isDelay)	// If there is a delay wait
 	{
 		wait1Msec(DELAY_TIME);
 	}
@@ -121,23 +111,17 @@ task main()
 
 void initializeRobot()
 {
+	// Initializes servos
 	servo[Gate] = GATE_CLOSED;
 	servo[Hooks] = GOAL_HOOKS_OPEN;
 
-
-
 	readChoices(); // Reads choices from a file that is written in from a program called Choices
-
 
 	initSensor(&irSeeker, S2);
 	wait1Msec(500);
 	//wait for stability of sensor before setting the mode.
 
-	// If irFrequency equals IR600, then let it stay IR600, else, let it be IR1200
-	//irSeeker.mode = (irFrequency == IR600 ? IR600 : IR1200);
-	//resolved: FTC is at 1200.
-
-	irSeeker.mode=DSP_1200;
+	irSeeker.mode = DSP_1200;
 	wait1Msec(500);
 
 
@@ -294,7 +278,6 @@ void readChoices()
 	TFileIOResult nIoResult;
 	TFileHandle myFileHandle;
 	short myFileSize = 10;
-	short irChoice;
 	short startingPositionShort;
 	short delayShort;
 
@@ -308,20 +291,11 @@ void readChoices()
 	}
 
 	//reads choices
-	ReadShort(myFileHandle, nIoResult, irChoice);
 	ReadShort(myFileHandle, nIoResult, startingPositionShort);
 	ReadShort(myFileHandle, nIoResult, delayShort);
 	Close(myFileHandle, nIoResult);
 
 	//sets values depending on choices
-	if(irChoice == 1200)
-	{
-		irFrequency = IR1200;
-	}
-	else
-	{
-		irFrequency = IR600;
-	}
 
 	if(startingPositionShort == RAMP_START)
 	{
@@ -331,7 +305,6 @@ void readChoices()
 	{
 		StartingPosition = ParkingZone;
 	}
-
 
 	if(delayShort == NEED_DELAY)
 	{

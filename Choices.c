@@ -1,13 +1,4 @@
-/*
-			Choices.c
-												*/
-
-//file we are going to write on
-#define DATA_FILE_NAME "choices.txt"
-
-//IR Frequencies
-#define IR600 DSP_600
-#define IR1200 DSP_1200
+#define DATA_FILE_NAME "choices.txt" //file we are going to write on
 
 //Buttons
 #define LEFT_BUTTON 2
@@ -25,57 +16,30 @@ task main()
 	TFileHandle myFileHandle;
 	string fileLine;
 	short myFileSize = 10;
-	short irChoice;
 	string startingPositionChoice;
 	short startingPositionShort;
 	string delayChoice;
 	short delayShort;
 	bool choicesConfirmed = false;
 
-	//deleting old file
-	Delete(DATA_FILE_NAME, nIoResult);
-	if(nIoResult)
+	Delete(DATA_FILE_NAME, nIoResult); // Deleting old file
+
+	if(nIoResult) // Error - could not delete file
 	{
-		//error - could not delete file
 		playTone(1000, 5);
 	}
 
 	while(!choicesConfirmed)
 	{
-		wait1Msec(500); //need a half second delay to suppress multiple reads of the same key
-		eraseDisplay();
-		//choose frequency
-		//left button for 600, right button for 1200
-		displayTextLine(1, "Choose frequency:");
-		displayTextLine(2,"Left== 600");
-		displayTextLine(3,"Right==1200");
-
-		//ignore everything until left or right arrow pressed.
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
-		{
-			// Intentional
-		}
-
-		//set values
-		if(nNxtButtonPressed == LEFT_BUTTON)
-		{
-			irChoice = 600;
-		}
-		else if(nNxtButtonPressed == RIGHT_BUTTON)
-		{
-			irChoice = 1200;
-		}
-
-		wait1Msec(500);
+		wait1Msec(500); // Need a half second delay to suppress multiple reads of the same key
 		eraseDisplay();
 
-
-		//choose starting position
-		//left button for parking zone, right button for ramp
+		// Choose starting position
 		displayTextLine(1, "Starting Pos:");
 		displayTextLine(2,"Left = PZ");
 		displayTextLine(3,"Right = Ramp");
 
+		// Ignore everything except left or right arrow.
 		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
 		{
 			//intentional
@@ -100,7 +64,7 @@ task main()
 		displayTextLine(3, "Right = No");
 
 
-		//ignore everything except left or right arrow.
+		// Ignore everything except left or right arrow.
 		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
 		{
 			//intentional
@@ -122,14 +86,12 @@ task main()
 
 
 		//confirmation
-		displayTextLine(1, "Freq: %d", irChoice);
 		displayTextLine(2, "Start pos: %s", startingPositionChoice);
 		displayTextLine(3, "Delay: %s", delayChoice);
 		displayTextLine(4, "Left =  Correct");
 		displayTextLine(5, "Right = Redo");
 
-		//ignore everything except left and right arrows.
-
+		// Ignore everything except left and right arrows.
 		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
 		{
 			//intentional
@@ -139,7 +101,7 @@ task main()
 		{
 			choicesConfirmed = true;
 		}
-	}//!choices confirmed
+	}// while(!choices)
 
 	OpenWrite(myFileHandle, nIoResult, DATA_FILE_NAME, myFileSize);
 
@@ -151,7 +113,6 @@ task main()
 	}
 
 	//writing on to file
-	WriteShort(myFileHandle, nIoResult, irChoice);
 	WriteShort(myFileHandle, nIoResult, startingPositionShort);
 	WriteShort(myFileHandle, nIoResult, delayShort);
 	Close(myFileHandle, nIoResult);
