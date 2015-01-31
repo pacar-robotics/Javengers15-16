@@ -2,9 +2,9 @@
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
-#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, PIDControl, encoder)
+#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, PIDControl, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, PIDControl, reversed, encoder)
 #pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
@@ -362,7 +362,7 @@ void processControls()
 		}
 		else
 		{
-			powerFactor = .6;
+			powerFactor = 1;
 		}
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
