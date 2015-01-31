@@ -1,7 +1,7 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
+#pragma config(Sensor, S4,     GoalBaseTouch,  sensorTouch)
 #pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
@@ -88,6 +88,8 @@ task liftCheckMAX(); // Checks if lift is too high
 task liftCheckMIN(); // Checks if lift is too low
 task checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
 task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
+task liftMoveCheck();	//turns off motor if lift is running
+task touchGoalBase();
 
 // Primary Functions
 void initializeRobot(); // Gets robot ready for Tele-op
@@ -110,6 +112,8 @@ task main()
 	startTask (liftCheckMAX);
 	startTask (liftCheckMIN);
 	startTask (checkLiftTouch);
+	startTask (liftMoveCheck);
+	startTask (touchGoalBase);
 	clrTimers();
 
 	while (1) // Infinite loop, will end when match ends
@@ -210,6 +214,22 @@ task holdPosition()
 	} // while(true)
 } // task holdPosition()
 
+task liftMoveCheck()
+{
+	if(LiftState == Running)
+	{
+		motor[LeftWheels] = 0;
+		motor[RightWheels] = 0;
+	}
+}
+
+task touchGoalBase()
+{
+	if(SensorValue[GoalBaseTouch] != 0)
+	{
+		playTone(2000, 50);
+	}
+}
 
 void processControls()
 {
