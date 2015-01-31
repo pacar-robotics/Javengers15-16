@@ -1,6 +1,7 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
+#pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
 #pragma config(Motor,  motorA,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorB,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorC,           ,             tmotorNXT, openLoop, encoder)
@@ -42,6 +43,7 @@
 #define LIFT_MIDDLE 14350
 #define LIFT_LOWER 7150
 #define LIFT_BASE 0
+#define LIFT_HOLD_POSITION_POWER 5
 
 // Gate
 #define GATE_CLOSED 180
@@ -75,19 +77,33 @@ void kickstand();		//kicks kickstand
 void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
+void moveLift(int encoderCounts);
 
 //for irSeeker
 tHTIRS2 irSeeker;
-tHTIRS2DSPMode irFrequency;
 
 bool isDelay;
+int CurrentPosition;
+int TargetPosition;
 
 enum StartingPositionEnum {ParkingZone, Ramp};
 StartingPositionEnum StartingPosition;
 
+enum LiftStateEnum {Running, Stopped};
+LiftStateEnum LiftState;
+
+task holdPosition();
+task LiftSafetyUpperLimitWatch();
+task LiftSafetyLowerLimitWatch();
+task LiftSafetyLimitTouchWatch();
+
 task main()
 {
 	initializeRobot();
+	startTask (holdPosition);
+	startTask (LiftSafetyUpperLimitWatch);
+	startTask (LiftSafetyLowerLimitWatch);
+	startTask (LiftSafetyLimitTouchWatch);
 
 	waitForStart();
 
@@ -104,6 +120,75 @@ task main()
 	else if(StartingPosition == ParkingZone)
 	{
 		kickstand();
+	}
+}
+
+// Tasks
+task holdPosition()
+{
+	while(true) // Constantly checks
+	{
+		if(nMotorEncoder[Lift] > TargetPosition) // if higher than supposed to be, lower it
+		{
+			motor[Lift] = -1 * LIFT_HOLD_POSITION_POWER;
+		}
+
+		if(nMotorEncoder[Lift] < TargetPosition) // if lower than supposed to be, raise it
+		{
+			motor[Lift] = LIFT_HOLD_POSITION_POWER;
+		}
+	} // while(true)
+} // task holdPosition()
+
+task LiftSafetyUpperLimitWatch(){
+	while(1){
+		if(nMotorEncoder[Lift]>LIFT_MAX){
+			//stop the lift
+			motor[Lift]=0;
+			//move the lift back down to the limit.
+			while(nMotorEncoder[Lift]>LIFT_MAX){
+				motor[Lift]=-10;
+				LiftState=Running;
+			}
+			//now stop the motor again.
+			motor[Lift]=0;
+			LiftState=Stopped;
+		}
+	}
+}
+
+task LiftSafetyLowerLimitWatch(){
+	while(1){
+		if(nMotorEncoder[Lift]<LIFT_BASE){
+			//stop the lift
+			motor[Lift]=0;
+			//rewind the cable to zero
+			while(nMotorEncoder[Lift]<LIFT_BASE){
+				motor[Lift]=10;
+				LiftState=Running;
+			}
+			//stop the motor again
+			motor[Lift]=0;
+			LiftState=Stopped;
+		}
+	}
+}
+
+task LiftSafetyLimitTouchWatch(){
+	while(1){
+		if(SensorValue[LiftLimitTouch]!=0){
+			playTone(5000,5);
+			//stop the lift
+			motor[Lift]=0;
+			//move the lift back down to the limit.
+			while(nMotorEncoder[Lift]>LIFT_MAX){
+				motor[Lift]=-10;
+				LiftState=Running;
+			}
+			//now stop the motor again.
+			motor[Lift]=0;
+			LiftState=Stopped;
+		}
 	}
 }
 
@@ -124,7 +209,6 @@ void initializeRobot()
 	irSeeker.mode = DSP_1200;
 	wait1Msec(500);
 
-
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
 }
@@ -136,6 +220,11 @@ void rampFunction() //ramp, goals
 	calcMove(60, 90, BACKWARD, REGULATED);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
 	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
+	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
+	servo[Gate] = GATE_OPEN;
+	wait1Msec(3000);
+	servo[Gate] = GATE_CLOSED;
+	moveLift(LIFT_BASE);
 	dualMotorTurn(40, 40, CLOCKWISE);
 	calcMove(223, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
@@ -272,8 +361,70 @@ void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turn
 	nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
 }
 
-//reads choices made in Choices.c
-void readChoices()
+void moveLift(int encoderCounts)
+{
+	nMotorPIDSpeedCtrl[Lift] = mtrSpeedReg;
+	CurrentPosition = nMotorEncoder[Lift];
+
+	stopTask(holdPosition); // Release the Hold Position task, to allow movement
+
+	servo[Gate] = GATE_CLOSED; // Close the gate, to ensure the safety of motion of the lift
+
+	// Now check if we need to travel up or down.
+	if(nMotorEncoder[Lift] > encoderCounts) // Need to move down
+	{
+		// Check if we are travelling below the lower goal, special handling, until counterweight deployed.
+		LiftState = Running;
+		nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
+		motor[Lift] = -75;
+
+		while(nMotorRunState[Lift] != runStateIdle && nMotorEncoder[Lift] >= LIFT_LOWER)
+		{
+			// Let the motor lift run until motor becomes idle on reaching target or we reach the last segment down if we reach the last segment down we want to slow down.
+		}
+
+		if(nMotorEncoder[Lift] > encoderCounts)
+		{
+			CurrentPosition=nMotorEncoder[Lift];
+			// We are now below the height of the lower base and need to slow down to let the last segment fall slowly
+			// This should only execute when the target is the base of the lift
+			nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
+			motor[Lift] = -30;
+			while(nMotorRunState[Lift] != runStateIdle)
+			{
+				//let the motor reach the target
+			}
+		} // if(nMotorEncoder[Lift] > encoderCounts)
+	} // if(nMotorEncoder[Lift] > encoderCounts)
+	else if(nMotorEncoder[Lift] < encoderCounts) // Need to move up
+	{
+		nMotorEncoderTarget[Lift] = encoderCounts - CurrentPosition;
+		motor[Lift] = 95;
+		LiftState = Running;
+		while(nMotorRunState[Lift] != runStateIdle)
+		{
+			//let the motor run till it reaches target
+		}
+	} // else if(nMotorEncoder[Lift]<encoderCounts)
+
+	// If we are already at the EncoderValue target we don't have to do anything
+
+	// Stop the motor
+	motor[Lift] = 0;
+	LiftState = Stopped;
+	TargetPosition = encoderCounts;
+	if(encoderCounts != LIFT_BASE)
+	{
+		// If it is at lift base we don't need to hold position as it will be supported already otherwise we lock on to the position
+		startTask(holdPosition);
+	}
+	else // Not needed, just caution
+	{
+		stopTask(holdPosition);
+	}
+}
+
+void readChoices() // Reads choices made in Choices.c
 {
 	TFileIOResult nIoResult;
 	TFileHandle myFileHandle;
