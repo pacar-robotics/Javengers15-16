@@ -1,10 +1,10 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
-#pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
-#pragma config(Sensor, S4,     GoalBaseTouch,  sensorTouch)
-#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
+#pragma config(Sensor, S3,     GoalBaseTouch,  sensorTouch)
+#pragma config(Sensor, S4,     ColorSensor,    sensorColorNxtFULL)
+#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, PIDControl, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, PIDControl, reversed, encoder)
 #pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
@@ -86,7 +86,7 @@ ChooseDriverEnum ChooseDriver;
 // Tasks
 task liftCheckMAX(); // Checks if lift is too high
 task liftCheckMIN(); // Checks if lift is too low
-task checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
+//task checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
 task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
 task liftMoveCheck();	//turns off motor if lift is running
 task touchGoalBase();
@@ -111,7 +111,7 @@ task main()
 
 	startTask (liftCheckMAX);
 	startTask (liftCheckMIN);
-	startTask (checkLiftTouch);
+	//startTask (checkLiftTouch);
 	startTask (liftMoveCheck);
 	startTask (touchGoalBase);
 	clrTimers();
@@ -179,6 +179,7 @@ task liftCheckMIN()
 	} // while(true)
 } // task liftCheckMIN()
 
+/*
 task checkLiftTouch()
 {
 	while(true) // Constantly checks
@@ -197,6 +198,7 @@ task checkLiftTouch()
 		} // if (SensorValue[LiftLimitTouch]!=0)
 	} // while(true)
 } // task checkLiftTouch()
+*/
 
 task holdPosition()
 {
@@ -228,6 +230,11 @@ task touchGoalBase()
 	if(SensorValue[GoalBaseTouch] != 0)
 	{
 		playTone(2000, 50);
+		SensorType[ColorSensor] = sensorColorNxtGREEN;
+	}
+	else
+	{
+		SensorType[ColorSensor] = sensorColorNxtNONE;
 	}
 }
 
