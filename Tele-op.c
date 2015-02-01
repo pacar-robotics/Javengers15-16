@@ -1,10 +1,11 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S3,     GoalBaseTouch,  sensorTouch)
 #pragma config(Sensor, S4,     ColorSensor,    sensorColorNxtFULL)
-#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, PIDControl, encoder)
+#pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, PIDControl, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, PIDControl, reversed, encoder)
 #pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
@@ -89,7 +90,7 @@ task liftCheckMIN(); // Checks if lift is too low
 //task checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
 task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
 task liftMoveCheck();	//turns off motor if lift is running
-task touchGoalBase();
+task colorSignal();
 
 // Primary Functions
 void initializeRobot(); // Gets robot ready for Tele-op
@@ -113,7 +114,7 @@ task main()
 	startTask (liftCheckMIN);
 	//startTask (checkLiftTouch);
 	startTask (liftMoveCheck);
-	startTask (touchGoalBase);
+	startTask (colorSignal);
 	clrTimers();
 
 	while (1) // Infinite loop, will end when match ends
@@ -225,16 +226,29 @@ task liftMoveCheck()
 	}
 }
 
-task touchGoalBase()
+task colorSignal()
 {
-	if(SensorValue[GoalBaseTouch] != 0)
+	while(true)
 	{
-		playTone(2000, 50);
-		SensorType[ColorSensor] = sensorColorNxtGREEN;
-	}
-	else
-	{
-		SensorType[ColorSensor] = sensorColorNxtNONE;
+		if(SensorValue[GoalBaseTouch] != 0)
+		{
+			if(ServoValue[Hooks] > 100)
+			{
+				SensorType[ColorSensor] = sensorColorNxtGREEN;
+			}
+			else
+			{
+				SensorType[ColorSensor] = sensorColorNxtBLUE;
+			}
+		}
+		else if(ServoValue[Hooks] > 100)
+		{
+			SensorType[ColorSensor] = sensorColorNxtRED;
+		}
+		else
+		{
+			SensorType[ColorSensor] = sensorColorNxtNONE;
+		}
 	}
 }
 
