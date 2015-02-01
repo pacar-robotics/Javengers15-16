@@ -1,7 +1,7 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
-#pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
-#pragma config(Sensor, S4,     GoalBaseTouch,  sensorTouch)
+#pragma config(Sensor, S3,     GoalBaseTouch,  sensorTouch)
+#pragma config(Sensor, S4,     ColorSensor,    sensorColorNxtFULL)
 #pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, PIDControl, reversed, encoder)
@@ -49,7 +49,7 @@ void testLiftMotor();
 void testGateServo();
 void testHookServo();
 void testIRBeacon();
-void testLiftLimitSensor();
+// void testLiftLimitSensor();
 void testGoalTouchSensor();
 void waitForButtonPress();
 
@@ -68,7 +68,7 @@ task main()
 	testGateServo();
 	testHookServo();
 	testIRBeacon();
-	testLiftLimitSensor();
+	// testLiftLimitSensor();
 	testGoalTouchSensor();
 
 	// play tone to signal end of program
@@ -336,7 +336,7 @@ void testIRBeacon()
 		wait1Msec(2000);
 	}
 }
-void testLiftLimitSensor()
+/*void testLiftLimitSensor()
 {
 	eraseDisplay();
 	//test for Touch Sensor
@@ -361,6 +361,7 @@ void testLiftLimitSensor()
 		wait1Msec(2000);
 	}
 }
+*/
 void testGoalTouchSensor()
 {
 	eraseDisplay();
