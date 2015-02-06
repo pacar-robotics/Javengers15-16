@@ -1,14 +1,14 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTServo,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S3,     LiftLimitTouch, sensorTouch)
+#pragma config(Sensor, S4,     ColorSensor,    sensorColorNxtFULL)
 #pragma config(Motor,  motorA,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorB,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  motorC,           ,             tmotorNXT, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_1,     LeftWheels,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
-#pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_3,    servo3,               tServoNone)
@@ -205,33 +205,37 @@ void initializeRobot()
 	initSensor(&irSeeker, S2);
 	wait1Msec(500);
 	//wait for stability of sensor before setting the mode.
-
 	irSeeker.mode = DSP_1200;
 	wait1Msec(500);
 
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
+
+	nMotorEncoder[Lift] = 0;
+
+	// Turns ColorSensor off to conserve battery
+	SensorType[ColorSensor] = sensorColorNxtNONE;
 }
 
 void rampFunction() //ramp, goals
 {
 	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
-	dualMotorTurn(3, 40, CLOCKWISE);
+	dualMotorTurn(6, 40, CLOCKWISE);
 	calcMove(60, 90, BACKWARD, REGULATED);
-	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
-	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
 	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
 	servo[Gate] = GATE_OPEN;
-	wait1Msec(3000);
-	servo[Gate] = GATE_CLOSED;
+	wait1Msec(2000);
+	//servo[Gate] = GATE_CLOSED;
 	moveLift(LIFT_BASE);
-	dualMotorTurn(40, 40, CLOCKWISE);
-	calcMove(223, 90, FORWARD, REGULATED);
+	dualMotorTurn(30, 40, CLOCKWISE);
+	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
+	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
+	calcMove(233, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
 	servo[Hooks] = GOAL_HOOKS_OPEN; // Let go of goal and leaves it in PZ
-	dualMotorTurn(10, 35, COUNTER_CLOCKWISE);
+	dualMotorTurn(5, 35, COUNTER_CLOCKWISE);
 	calcMove(250, 90, FORWARD, REGULATED);
-	dualMotorTurn(180, 40, CLOCKWISE);
+	dualMotorTurn(10, 40, CLOCKWISE);
 }
 
 void kickstand()	//kicks kickstand depending on directional value of irseeker
