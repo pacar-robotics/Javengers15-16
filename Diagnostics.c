@@ -18,8 +18,8 @@
 #include "hitechnic-irseeker-v2.h"
 #include "lego-touch.h"
 
-#define GATE_CLOSED 70
-#define GATE_OPEN 150
+#define GATE_CLOSED 180
+#define GATE_OPEN 10
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
@@ -41,9 +41,10 @@ bool spindleError = false;
 bool hooksError = false;
 bool gateError = false;
 bool irBeaconError = false;
-bool touchSensorError = false;
+bool liftTouchSensorError = false;
 bool goalTouchError1 = false;
 bool goalTouchError2 = false;
+bool colorSensorError = false;
 
 void testNXTBattery();
 void testEXTBattery();
@@ -57,6 +58,7 @@ void testLiftLimitSensor();
 void testGoalTouchSensors();
 void testGoalTouchSensor1(); // Secondary to testGoalTouchSensors()
 void testGoalTouchSensor2(); // Also secondary
+void testColorSensor();
 void waitForButtonPress();
 
 bool confirmWorking();
@@ -67,6 +69,7 @@ const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 task main()
 {
+	SensorType[ColorSensor] = sensorColorNxtNONE;
 	testNXTBattery();
 	testEXTBattery();
 	testWheelMotors();
@@ -77,6 +80,7 @@ task main()
 	testIRBeacon();
 	testLiftLimitSensor();
 	testGoalTouchSensors();
+	testColorSensor();
 
 	eraseDisplay();
 	if(hasErrors)
@@ -123,7 +127,7 @@ task main()
 		displayTextLine(displayLineNumber++, "IR Beacon Error");
 	}
 
-	if(touchSensorError)
+	if(liftTouchSensorError)
 	{
 		displayTextLine(displayLineNumber++, "LiftLimitTouch Sensor Error");
 	}
@@ -352,17 +356,17 @@ void testLiftLimitSensor()
 {
 	eraseDisplay();
 	//test for Touch Sensor
-	displayTextLine(1, "Testing LiftLimir Sensor...");
+	displayTextLine(1, "Testing LiftLimit Sensor...");
 	wait1Msec(1000);
 	displayTextLine(2, "Press LiftLimit Sensor..");
 	clearTimer(T1);
-	while(TSreadState(LiftLimitTouch)&&(time1[T1]<10000)&&(nNxtButtonPressed<0)){
+	while((TSreadState(LiftLimitTouch) == 0)&&(time1[T1]<10000)&&(nNxtButtonPressed<0)){
 		//intentional
 	}
 	if((time1[T1]>=10000)||(nNxtButtonPressed>=0)){
 		//timer ran out or we were interrupted
 		hasErrors=true;
-	touchSensorError = true;
+		liftTouchSensorError = true;
 
 		displayTextLine(5,"No LiftLimit Sensed");
 		//wait for confirmation
@@ -414,7 +418,7 @@ void testGoalTouchSensor2()
 	wait1Msec(1000);
 	displayTextLine(2, "Press GoalTouch Sensor...");
 	clearTimer(T1);
-	while((TSreadState(GoalBaseTouch2))&&(time1[T1] < 10000)&&(nNxtButtonPressed < 0))
+	while((TSreadState(GoalBaseTouch2) == 0)&&(time1[T1] < 10000)&&(nNxtButtonPressed < 0))
 	{
 		//intentional
 	}
@@ -429,6 +433,26 @@ void testGoalTouchSensor2()
 		}else{
 		displayTextLine(5,"Detected GoalTouch Press");
 		wait1Msec(2000);
+	}
+}
+
+void testColorSensor()
+{
+	eraseDisplay();
+	//testing for Color Sensor
+	displayTextLine(1, "Testing Color Sensor...");
+	wait1Msec(1000);
+	SensorType[ColorSensor] = sensorColorNxtRED;
+	wait1Msec(1000);
+	SensorType[ColorSensor] = sensorColorNxtGREEN;
+	wait1Msec(1000);
+	SensorType[ColorSensor] = sensorColorNxtBLUE;
+	wait1Msec(1000);
+	SensorType[ColorSensor] = sensorColorNxtNONE;
+	wait1Msec(1000);
+	if(!confirmWorking())
+	{
+		colorSensorError = true;
 	}
 }
 
