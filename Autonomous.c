@@ -82,8 +82,8 @@ bool isDelay;
 int CurrentPosition;
 int TargetPosition;
 
-//const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
-//const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
+const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
+const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
 const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 
@@ -219,7 +219,10 @@ void rampFunction() //ramp, goals
 {
 	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
 	dualMotorTurn(6, 40, CLOCKWISE);
-	calcMove(60, 90, BACKWARD, REGULATED);
+	calcMove(45, 90, BACKWARD, REGULATED);
+	motor[LeftWheels] = 20;
+	motor[RightWheels] = 20;
+	while((TSreadState(GoalBaseTouch1) == 0)&&(TSreadState(GoalBaseTouch2) == 0));
 	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
 	servo[Gate] = GATE_OPEN;
 	wait1Msec(2000);
