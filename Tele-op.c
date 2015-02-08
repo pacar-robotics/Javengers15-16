@@ -109,6 +109,12 @@ int TargetPosition = 0; // Used in holdPosition
 int CurrentPosition = 0; // Used in moveLift
 float powerFactor; // Used in driving, when lift is up, powerFactor goes down
 
+// For smoothing out the wheel movements
+int prev_Joy1Y1;
+int prev_Joy1Y2;
+int prev_Joy2Y1;
+int prev_Joy2Y2;
+
 task main()
 {
 	initializeRobot();
@@ -411,21 +417,25 @@ void processControls()
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = (int)(CTRL1_JOY_LEFT_Y * powerFactor);	//multiplied by power factor to become slower (less jerking)
+			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * powerFactor);	//multiplied by power factor to become slower (less jerking)
 		}
 		else
 		{
 			motor[RightWheels] = 0;
 		}
 
+		prev_Joy1Y1 = CTRL1_JOY_LEFT_Y;
+
 		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = (int)(CTRL1_JOY_RIGHT_Y * powerFactor);
+			motor[LeftWheels] = (int)(((CTRL1_JOY_RIGHT_Y + prev_Joy1Y2)/2) * powerFactor);
 		}
 		else
 		{
 			motor[LeftWheels] = 0;
 		}
+
+		prev_Joy1Y2 = CTRL1_JOY_RIGHT_Y;
 
 		switch (CTRL1_DPAD)
 		{
@@ -454,21 +464,25 @@ void processControls()
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
+			motor[LeftWheels] = (int)(((CTRL2_JOY_LEFT_Y + prev_Joy2Y1)/2) * powerFactor);
 		}
 		else
 		{
 			motor[LeftWheels] = 0;
 		}
 
+		prev_Joy2Y1 = CTRL2_JOY_LEFT_Y;
+
 		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = (int)(CTRL2_JOY_RIGHT_Y * powerFactor);
+			motor[RightWheels] = (int)(((CTRL2_JOY_LEFT_Y + prev_Joy2Y2)/2) * powerFactor);
 		}
 		else
 		{
 			motor[RightWheels] = 0;
 		}
+
+		prev_Joy2Y2 = CTRL2_JOY_LEFT_Y;
 
 		switch (CTRL2_DPAD)
 		{
