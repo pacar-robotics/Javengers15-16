@@ -36,7 +36,7 @@
 // Lift
 #define LIFT_MAX 11400
 #define LIFT_TOP 11350
-#define LIFT_MIDDLE 7500
+#define LIFT_MIDDLE 7550
 #define LIFT_LOWER 3600
 #define LIFT_BASE 0
 #define LIFT_HOLD_POSITION_POWER 5
@@ -82,8 +82,8 @@ bool isDelay;
 int CurrentPosition;
 int TargetPosition;
 
-const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
-const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
+//const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
+//const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
 const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 
@@ -121,6 +121,11 @@ task main()
 	else if(StartingPosition == ParkingZone)
 	{
 		kickstand();
+	}
+
+	while(true)
+	{
+
 	}
 }
 
@@ -178,7 +183,7 @@ task LiftSafetyLowerLimitWatch(){
 task LiftSafetyLimitTouchWatch(){
 	while(1){
 		if(TSreadState(LiftLimitTouch) != 0){
-			playTone(5000,5);
+			playTone(1000,5);
 			//stop the lift
 			motor[Lift]=0;
 			//move the lift back down to the limit.
@@ -219,24 +224,31 @@ void rampFunction() //ramp, goals
 {
 	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
 	dualMotorTurn(6, 40, CLOCKWISE);
-	calcMove(45, 90, BACKWARD, REGULATED);
-	motor[LeftWheels] = 20;
-	motor[RightWheels] = 20;
-	while((TSreadState(GoalBaseTouch1) == 0)&&(TSreadState(GoalBaseTouch2) == 0));
+	calcMove(60, 90, BACKWARD, REGULATED);
+	/*
+	motor[LeftWheels] = -20;
+	motor[RightWheels] = -20;
+	while((TSreadState(GoalBaseTouch1) == 0)||(TSreadState(GoalBaseTouch2) == 0))
+	{
+	// Intentionally empty
+	}
+
+	motor[LeftWheels] = 0;
+	motor[RightWheels] = 0;
+	*/
+	servo[Gate] = GATE_CLOSED;
 	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
+	//servo[Gate] = GATE_CLOSED;
 	servo[Gate] = GATE_OPEN;
-	wait1Msec(2000);
+	wait1Msec(10000);
 	//servo[Gate] = GATE_CLOSED;
 	moveLift(LIFT_BASE);
-	dualMotorTurn(30, 40, CLOCKWISE);
+	dualMotorTurn(20, 40, CLOCKWISE);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
+	dualMotorTurn(10, 40, CLOCKWISE);
 	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
 	calcMove(233, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
-	servo[Hooks] = GOAL_HOOKS_OPEN; // Let go of goal and leaves it in PZ
-	dualMotorTurn(5, 35, COUNTER_CLOCKWISE);
-	calcMove(250, 90, FORWARD, REGULATED);
-	dualMotorTurn(10, 40, CLOCKWISE);
 }
 
 void kickstand()	//kicks kickstand depending on directional value of irseeker

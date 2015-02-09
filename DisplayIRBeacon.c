@@ -18,9 +18,6 @@ task main()
 	//for sensor to settle.
 	irSeeker.mode=DSP_1200;
 
-
-
-
 	displayIRBeaconValues();
 }
 
@@ -32,21 +29,20 @@ void displayIRBeaconValues()
 		eraseDisplay();
 		readSensor(&irSeeker);
 
-		displayTextLine(1, "Sensors");
+		//displayTextLine(1, "Sensors");
 
 		//displays directional value
-		displayTextLine(2, "Dir-%d EnhDir-%d",irSeeker.acDirection,irSeeker.enhDirection);
+		displayTextLine(1, "Dir - %d",irSeeker.acDirection);
+		displayTextLine(2, "EnhDir - %d",irSeeker.enhDirection);
 		displayTextLine(3, "1-%d 2-%d 3-%d", irSeeker.acValues[0], irSeeker.acValues[1], irSeeker.acValues[2]);
-		displayTextLine(4, "4-%d 5-%d",
-		irSeeker.acValues[3],
-		irSeeker.acValues[4]);
+		displayTextLine(4, "4-%d 5-%d",	irSeeker.acValues[3],	irSeeker.acValues[4]);
 
-		displayTextLine(5, "Strength:%d", irSeeker.enhStrength);
+		displayTextLine(5, "Strength: %d", irSeeker.enhStrength);
 
 
 		//tells what position center field goal is in
 
-		switch(irSeeker.acDirection){
+		/*switch(irSeeker.acDirection){
 			case 0:	// for Position 1
 				displayTextLine(6,"Position: 1");
 
@@ -60,7 +56,7 @@ void displayIRBeaconValues()
 				displayTextLine(6,"Position: 3");
 			break;
 		}
-
+*/
 		wait1Msec(500);
 	} //while(true)
 }
