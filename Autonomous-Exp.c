@@ -253,6 +253,8 @@ void initializeRobot()
 void rampFunction() //ramp, goals
 {
 	int directionError =0;
+	float CorrectedDistance=0.0;
+	float CorrectedAngle=0.0;
 
 	//start the Gyro value integration in order to correct for the ramp direction errors
 	gyroHeading=0.0;
@@ -268,7 +270,7 @@ void rampFunction() //ramp, goals
 	eraseDisplay();
 	displayTextLine(1,"Dir Head: %d", gyroHeading);
 	displayTextLine(2,"Dir Err: %d", directionError);
-	wait1Msec(10000);
+	wait1Msec(500);
 
 	//now correct for this error.
 
@@ -277,39 +279,44 @@ void rampFunction() //ramp, goals
 		dualMotorTurn(directionError, 40, COUNTER_CLOCKWISE);
 	}
 
-	//negative error, turn clockwise
+	//negative error, turn clockwise,  (trigonometry), to get to same spot
+	//not clear if this is more accurate than dead reckoning turns used before.
+	//needs testing.
 	if(directionError<0){
-		dualMotorTurn(directionError, 40, CLOCKWISE);
+
+		CorrectedDistance=sqrt(pow(sinDegrees(abs(directionError))*RAMP_DISTANCE,2)+pow(65,2));
+		CorrectedAngle=90+directionError-atan(65/(sinDegrees(abs(directionError))*RAMP_DISTANCE))*180/PI;
+		dualMotorTurn(CorrectedAngle,70,CLOCKWISE);
+		calcMove(CorrectedDistance,70,BACKWARD, REGULATED);
+		//finally turn to correct for final orientation.
+		//dualMotorTurn(90-atan(65/(sinDegrees(abs(directionError))*RAMP_DISTANCE))*180/PI,70,COUNTER_CLOCKWISE);
+		wait1Msec(2000);
 	}
 
-	//if zero must do nothing, calcMove will go into a loop at zero.
 
-	calcMove(65, 90, BACKWARD, REGULATED);
+	dualMotorTurn(5,40,COUNTER_CLOCKWISE);
+	calcMove(5,70,BACKWARD,REGULATED);
 
+	//try scoring goal.
 
-	//motor[LeftWheels] = -20;
-	//motor[RightWheels] = -20;
-	//while((TSreadState(GoalBaseTouch1) == 0)||(TSreadState(GoalBaseTouch2) == 0))
-	//{
-	// Intentionally empty
-	//}
-
-	motor[LeftWheels] = 0;
-	motor[RightWheels] = 0;
-
-
-	dualMotorTurn(5,40,CLOCKWISE);
-	calcMove(5,40,BACKWARD,REGULATED);
-	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
-	servo[Gate] = GATE_OPEN;
-	wait1Msec(1000);
+	moveLift(LIFT_MIDDLE);
+	servo[Gate]=GATE_OPEN;
+	wait1Msec(2000);
 	moveLift(LIFT_BASE);
+
+
+
+
 	dualMotorTurn(5, 40, CLOCKWISE);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
-	dualMotorTurn(10, 40, CLOCKWISE);
-	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
+	wait1Msec(300);
+	// Waits because the servo has time to move before the wheels start moving
+
+	dualMotorTurn(12, 60, CLOCKWISE);
+
 	calcMove(245, 90, FORWARD, REGULATED);
-	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
+	dualMotorTurn(180, 60, COUNTER_CLOCKWISE);
+
 
 
 }
