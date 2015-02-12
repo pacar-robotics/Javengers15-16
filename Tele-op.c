@@ -113,8 +113,6 @@ float powerFactor; // Used in driving, when lift is up, powerFactor goes down
 // For smoothing out the wheel movements
 int prev_Joy1Y1;
 int prev_Joy1Y2;
-int prev_Joy2Y1;
-int prev_Joy2Y2;
 
 task main()
 {
@@ -426,7 +424,8 @@ void processControls()
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * powerFactor);	//multiplied by power factor to become slower (less jerking)
+			//multiplied by power factor to become slower (less jerking)
+			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * powerFactor);
 		}
 		else
 		{
@@ -473,18 +472,16 @@ void processControls()
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = (int)(((CTRL2_JOY_LEFT_Y + prev_Joy2Y1)/2) * powerFactor);
+			motor[LeftWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
 		}
 		else
 		{
 			motor[LeftWheels] = 0;
 		}
 
-		prev_Joy2Y1 = CTRL2_JOY_LEFT_Y;
-
 		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = (int)(((CTRL2_JOY_LEFT_Y + prev_Joy2Y2)/2) * powerFactor);
+			motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
 		}
 		else
 		{
