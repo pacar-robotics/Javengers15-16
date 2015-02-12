@@ -490,27 +490,6 @@ void processControls()
 		{
 			motor[RightWheels] = 0;
 		}
-
-		prev_Joy2Y2 = CTRL2_JOY_LEFT_Y;
-
-		switch (CTRL2_DPAD)
-		{
-		case DPAD_RIGHT:
-			dualMotorTurn(90, 40, CLOCKWISE);
-			break;
-
-		case DPAD_LEFT:
-			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);
-			break;
-
-		case DPAD_TOP:
-			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
-			break;
-
-		case DPAD_BOTTOM:
-			dualMotorTurn(180, 40, CLOCKWISE);
-			break;
-		} // switch (CTRL2_DPAD)
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
 
