@@ -65,7 +65,7 @@ task main()
 
 
 		// Ignore everything except left or right arrow.
-		while ((nNxtButtonPressed != LEFT_BUTTON) && (nNxtButtonPressed != RIGHT_BUTTON))
+		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
 		{
 			//intentional
 		}
