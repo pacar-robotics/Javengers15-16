@@ -31,6 +31,7 @@
 
 tHTIRS2 irSeeker;
 
+//errors
 bool hasErrors = false;
 bool NXTBatteryError = false;
 bool EXTBatteryError = false;
@@ -46,6 +47,7 @@ bool goalTouchError1 = false;
 bool goalTouchError2 = false;
 bool colorSensorError = false;
 
+//Functions
 void testNXTBattery();
 void testEXTBattery();
 void testWheelMotors();
@@ -63,13 +65,14 @@ void waitForButtonPress();
 
 bool confirmWorking();
 
+//for multiplexer
 const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
 const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
 const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 task main()
 {
-	SensorType[ColorSensor] = sensorColorNxtNONE;
+	SensorType[ColorSensor] = sensorColorNxtNONE;	// turns off color sensor
 	testNXTBattery();
 	testEXTBattery();
 	testWheelMotors();
@@ -97,6 +100,8 @@ task main()
 	waitForButtonPress();
 
 	int displayLineNumber = 1;
+
+	//Displays individual errors
 	if(NXTBatteryError)
 	{
 		displayTextLine(displayLineNumber++,"NXT Battery Error");
@@ -150,18 +155,21 @@ task main()
 void testNXTBattery()
 {
 	eraseDisplay();
-	//test Batteries
-	//NXT Battery
+	//test NXT Battery
 	displayTextLine(1, "Testing NXT Batt..");
-	if(nAvgBatteryLevel <8000){
-		hasErrors=true;
+	if(nAvgBatteryLevel <8000) //if battery level is too low
+	{
+		hasErrors=true;		//turns error on
 		NXTBatteryError = true;
 		displayTextLine(3, "NXT Batt Low !!!...");
 		displayTextLine(5,"NXT Batt:%d",nAvgBatteryLevel);
 		playTone(5000, 5);
+
 		//wait for acknowledgement
 		waitForButtonPress();
-		}else{
+		}
+	else
+	{
 		displayTextLine(3, "NXT Batt Ok !!!...");
 		displayTextLine(5,"NXT Batt: %d",nAvgBatteryLevel);
 		wait1Msec(1000);
@@ -172,20 +180,24 @@ void testEXTBattery()
 	eraseDisplay();
 	//test External Battery
 	displayTextLine(1, "Testing Ext Batt..");
-	if(externalBatteryAvg <13000){
-		hasErrors=true;
+	if(externalBatteryAvg <13000)
+	{
+		hasErrors=true;	//turn error on
 		EXTBatteryError = true;
 		displayTextLine(3, "EXT Batt Low !!!...");
 		displayTextLine(4,"EXT Batt Lev:%d",externalBatteryAvg);
-		if(externalBatteryAvg<0){
+		if(externalBatteryAvg<0)
+		{
 			displayTextLine(5,"EXT Batt Off ?");
 			wait1Msec(2000);
 		}
 		playTone(8000, 5);
+
 		//wait for acknowledgement
 		waitForButtonPress();
 	}
-	if(externalBatteryAvg >13000){
+	if(externalBatteryAvg >13000)
+	{
 		eraseDisplay();
 		displayTextLine(3, "EXT Batt Ok !!!...");
 		displayTextLine(5,"EXT Batt Lev:%d",externalBatteryAvg);
@@ -235,6 +247,8 @@ void testWheelMotors()
 		waitForButtonPress();
 	}
 }
+
+//tests lift
 void testLiftMotor()
 {
 	eraseDisplay();
@@ -265,6 +279,8 @@ void testLiftMotor()
 		motor[Lift] = 0;
 	}
 }
+
+//tests spindle
 void testSpindleMotor()
 {
 	eraseDisplay();
@@ -283,6 +299,8 @@ void testSpindleMotor()
 	}
 
 }
+
+//tests goal hooks
 void testHookServo()
 {
 	eraseDisplay();
@@ -301,6 +319,8 @@ void testHookServo()
 	}
 	servo[Hooks]=GOAL_HOOKS_OPEN;
 }
+
+//test gate servo
 void testGateServo()
 {
 	eraseDisplay();
@@ -319,6 +339,8 @@ void testGateServo()
 	}
 	servo[Gate]= GATE_CLOSED;
 }
+
+//tests ir beacon
 void testIRBeacon()
 {
 	eraseDisplay();
@@ -335,10 +357,12 @@ void testIRBeacon()
 	irSeeker.acDirection=0;
 	displayTextLine(4,"Reading IR Sensor..");
 	clearTimer(T1);
-	while((irSeeker.acDirection==0)&&(time1[T1]<10000)&&(nNxtButtonPressed<0)){
+	while((irSeeker.acDirection==0)&&(time1[T1]<10000)&&(nNxtButtonPressed<0))
+	{
 		readSensor(&irSeeker);
 	}
-	if((time1[T1]>=10000)||(nNxtButtonPressed>=0)){
+	if((time1[T1]>=10000)||(nNxtButtonPressed>=0))
+	{
 		//timer ran out or interrupted
 		hasErrors=true;
 		irBeaconError = true;
@@ -346,12 +370,16 @@ void testIRBeacon()
 		//wait for confirmation
 		wait1Msec(1000);
 		waitForButtonPress();
-		}else{
+		}
+	else
+	{
 		//found IR Beacon
 		displayTextLine(5,"Found IR, Dir:%d",irSeeker.acDirection);
 		wait1Msec(2000);
 	}
 }
+
+//test LiftLimitTouch
 void testLiftLimitSensor()
 {
 	eraseDisplay();
@@ -377,6 +405,7 @@ void testLiftLimitSensor()
 		wait1Msec(2000);
 	}
 }
+
 
 void testGoalTouchSensors()
 {
