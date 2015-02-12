@@ -1,5 +1,6 @@
 #define DATA_FILE_NAME "choices.txt" //file we are going to write on
 
+
 //Buttons
 #define LEFT_BUTTON 2
 #define RIGHT_BUTTON 1
@@ -10,21 +11,21 @@
 #define NEED_DELAY 1
 #define NO_DELAY 0
 
+
 task main()
 {
 	TFileIOResult nIoResult;
 	TFileHandle myFileHandle;
 	string fileLine;
-	short myFileSize = 10;
 	string startingPositionChoice;
-	short startingPositionShort;
 	string delayChoice;
+	short myFileSize = 10;
+	short startingPositionShort;
 	short delayShort;
 	bool choicesConfirmed = false;
 
 	Delete(DATA_FILE_NAME, nIoResult); // Deleting old file
-
-	if(nIoResult) // Error - could not delete file
+	if(nIoResult) // Could not delete file
 	{
 		playTone(1000, 5);
 	}
@@ -36,12 +37,11 @@ task main()
 
 		// Choose starting position
 		displayTextLine(1, "Starting Pos:");
-		displayTextLine(2,"Left = PZ");
-		displayTextLine(3,"Right = Ramp");
+		displayTextLine(3,"Left = PZ");
+		displayTextLine(4,"Right = Ramp");
 
-		// Ignore everything except left or right arrow.
 		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
-		{
+		{ // Ignore everything except left or right arrow.
 			//intentional
 		}
 
@@ -60,13 +60,11 @@ task main()
 		eraseDisplay();
 
 		displayTextLine(1, "Need delay?");
-		displayTextLine(2, "Left = Yes");
-		displayTextLine(3, "Right = No");
+		displayTextLine(3, "Left = Yes");
+		displayTextLine(4, "Right = No");
 
-
-		// Ignore everything except left or right arrow.
 		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
-		{
+		{ // Ignore everything except left or right arrow.
 			//intentional
 		}
 
@@ -84,16 +82,14 @@ task main()
 		wait1Msec(500);
 		eraseDisplay();
 
-
 		//confirmation
 		displayTextLine(2, "Start pos: %s", startingPositionChoice);
 		displayTextLine(3, "Delay: %s", delayChoice);
-		displayTextLine(4, "Left =  Correct");
+		displayTextLine(4, "Left = Correct");
 		displayTextLine(5, "Right = Redo");
 
-		// Ignore everything except left and right arrows.
 		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
-		{
+		{ // Ignore everything except left and right arrows.
 			//intentional
 		}
 
@@ -117,7 +113,7 @@ task main()
 	WriteShort(myFileHandle, nIoResult, delayShort);
 	Close(myFileHandle, nIoResult);
 
-	if(nIoResult)
+	if(nIoResult) // Error to writing or closing file
 	{
 		playTone(10000, 5);
 	}
