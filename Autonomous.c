@@ -225,17 +225,6 @@ void rampFunction() //ramp, goals
 	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
 	dualMotorTurn(6, 40, CLOCKWISE);
 	calcMove(60, 90, BACKWARD, REGULATED);
-	/*
-	motor[LeftWheels] = -20;
-	motor[RightWheels] = -20;
-	while((TSreadState(GoalBaseTouch1) == 0)||(TSreadState(GoalBaseTouch2) == 0))
-	{
-	// Intentionally empty
-	}
-
-	motor[LeftWheels] = 0;
-	motor[RightWheels] = 0;
-	*/
 	servo[Gate] = GATE_CLOSED;
 	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
 	//servo[Gate] = GATE_CLOSED;
