@@ -86,12 +86,15 @@ GateStateEnum GateState;
 ChooseDriverEnum ChooseDriver;
 
 // Tasks
-task liftCheckMAX(); // Checks if lift is too high
-task liftCheckMIN(); // Checks if lift is too low
-task checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
 task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
 task liftMoveCheck();	//turns off motor if lift is running
-task colorSignal();	//turns on color sensor if hooks is down, goaltouch has been detected, or both
+task MUXTasks();
+
+// Functions for MUXTasks
+void liftCheckMAX(); // Checks if lift is too high
+void liftCheckMIN(); // Checks if lift is too low
+void checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
+void colorSignal();	//turns on color sensor if hooks is down, goaltouch has been detected, or both
 
 // Primary Functions
 void initializeRobot(); // Gets robot ready for Tele-op
@@ -119,12 +122,9 @@ task main()
 	initializeRobot();
 	waitForStart();
 
-	startTask (liftCheckMAX);
-	startTask (liftCheckMIN);
-	startTask (checkLiftTouch);
-	startTask (liftMoveCheck);
-	startTask (colorSignal);
 	clrTimers();
+	startTask (liftMoveCheck);
+	startTask (MUXTasks);
 
 	while (1) // Infinite loop, will end when match ends
 	{
@@ -151,62 +151,64 @@ void clrTimers()
 	clearTimer (T4);	// Hooks
 }
 
-task liftCheckMAX ()
+task MUXTasks()
 {
-	while(true) // Constantly checks
+	while(true)
 	{
-		if (nMotorEncoder[Lift] > LIFT_MAX) // Checks if lift is higher than it is supposed to be
+		liftCheckMAX();
+		liftCheckMIN();
+		checkLiftTouch();
+		colorSignal();
+	}
+}
+
+void liftCheckMAX ()
+{
+	if (nMotorEncoder[Lift] > LIFT_MAX) // Checks if lift is higher than it is supposed to be
+	{
+		LiftState = Running;
+
+		while (nMotorEncoder[Lift] > LIFT_MAX) // Lowers lift until it is in the right position
 		{
-			LiftState = Running;
+			motor[Lift] = -20;
+		}
 
-			while (nMotorEncoder[Lift] > LIFT_MAX) // Lowers lift until it is in the right position
-			{
-				motor[Lift] = -20;
-			}
-
-			motor[Lift] = 0; // After lift is where it is supposed to be, stop it
-			LiftState = Stopped;
-		} // if (nMotorEncoder[Lift] > LIFT_MAX)
-	} // while(true)
+		motor[Lift] = 0; // After lift is where it is supposed to be, stop it
+		LiftState = Stopped;
+	} // if (nMotorEncoder[Lift] > LIFT_MAX)
 } // task liftCheckMAX()
 
-task liftCheckMIN()
+void liftCheckMIN()
 {
-	while(true) // Constantly checks
+	if (nMotorEncoder[Lift] < LIFT_BASE - 1) // Checks if lift is lower than it is supposed to be
 	{
-		if (nMotorEncoder[Lift] < LIFT_BASE - 1) // Checks if lift is lower than it is supposed to be
+		LiftState = Running;
+
+		while (nMotorEncoder[Lift] < LIFT_BASE - 1) // Raises lift until it is in the right position
 		{
-			LiftState = Running;
+			motor[Lift] = 20;
+		}
 
-			while (nMotorEncoder[Lift] < LIFT_BASE - 1) // Raises lift until it is in the right position
-			{
-				motor[Lift] = 20;
-			}
-
-			motor[Lift] = 0;// After lift is where it is supposed to be, stop it
-			LiftState = Stopped;
-		} // if (nMotorEncoder[Lift] < LIFT_BASE)
-	} // while(true)
+		motor[Lift] = 0;// After lift is where it is supposed to be, stop it
+		LiftState = Stopped;
+	} // if (nMotorEncoder[Lift] < LIFT_BASE)
 } // task liftCheckMIN()
 
 
-task checkLiftTouch()
+void checkLiftTouch()
 {
-	while(true) // Constantly checks
+	if(TSreadState(LiftLimitTouch) != 0) // Checks if touch sensor is touched
 	{
-		if(TSreadState(LiftLimitTouch) != 0) // Checks if touch sensor is touched
+		LiftState = Running;
+
+		while(nMotorEncoder[Lift] > LIFT_MAX) //move the lift back down to the limit.
 		{
-			LiftState = Running;
+			motor[Lift]=-10;
+		}
 
-			while(nMotorEncoder[Lift] > LIFT_MAX) //move the lift back down to the limit.
-			{
-				motor[Lift]=-10;
-			}
-
-			motor[Lift]=0;
-			LiftState=Stopped;
-		} // if (SensorValue[LiftLimitTouch]!=0)
-	} // while(true)
+		motor[Lift]=0;
+		LiftState=Stopped;
+	} // if (SensorValue[LiftLimitTouch]!=0)
 } // task checkLiftTouch()
 
 //for use to hold lift up in position
@@ -236,32 +238,29 @@ task liftMoveCheck()
 	}
 }
 
-task colorSignal()
+void colorSignal()
 {
-	while(true)	//constantly checks
+	if((TSreadState(GoalBaseTouch1) != 0)||(TSreadState(GoalBaseTouch2)))
 	{
-		if((TSreadState(GoalBaseTouch1) != 0)||(TSreadState(GoalBaseTouch2)))
+		if(ServoValue[Hooks] > 100)
 		{
-			if(ServoValue[Hooks] > 100)
-			{
-				//turns green if hooks is down and goal base touch is detected
-				SensorType[ColorSensor] = sensorColorNxtGREEN;
-			}
-			else
-			{
-				//turns blue if only goal base touch is detected
-				SensorType[ColorSensor] = sensorColorNxtBLUE;
-			}
-		}
-		else if(ServoValue[Hooks] > 100)
-		{
-			//turns red if hooks is down
-			SensorType[ColorSensor] = sensorColorNxtRED;
+			//turns green if hooks is down and goal base touch is detected
+			SensorType[ColorSensor] = sensorColorNxtGREEN;
 		}
 		else
 		{
-			SensorType[ColorSensor] = sensorColorNxtNONE; //emits no light
+			//turns blue if only goal base touch is detected
+			SensorType[ColorSensor] = sensorColorNxtBLUE;
 		}
+	}
+	else if(ServoValue[Hooks] > 100)
+	{
+		//turns red if hooks is down
+		SensorType[ColorSensor] = sensorColorNxtRED;
+	}
+	else
+	{
+		SensorType[ColorSensor] = sensorColorNxtNONE; //emits no light
 	}
 }
 
