@@ -469,20 +469,20 @@ void processControls()
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
-		}
-		else
-		{
-			motor[LeftWheels] = 0;
-		}
-
-		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
-		{
 			motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
 		}
 		else
 		{
 			motor[RightWheels] = 0;
+		}
+
+		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
+		{
+			motor[LeftWheels] = (int)(CTRL2_JOY_RIGHT_Y * powerFactor);
+		}
+		else
+		{
+			motor[LeftWheels] = 0;
 		}
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
