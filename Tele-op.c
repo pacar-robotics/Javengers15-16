@@ -102,7 +102,6 @@ void processControls(); // Has uses for buttons
 
 // Secondary Functions
 void moveLift(int encoderCounts); // Moves lift to specified position
-void dualMotorTurn(float robotDegrees, float power, bool direction); // Turns robot to specified position
 
 const tMUXSensor GoalBaseTouch1 = msensor_S4_1;	//for use of multiplexer
 const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
@@ -442,26 +441,6 @@ void processControls()
 		}
 
 		prev_Joy1Y2 = CTRL1_JOY_RIGHT_Y;
-
-		switch (CTRL1_DPAD)
-		{
-		case DPAD_RIGHT:
-			dualMotorTurn(90, 40, CLOCKWISE);	//90 degrees clockwise
-			break;
-
-		case DPAD_LEFT:
-			dualMotorTurn(90, 40, COUNTER_CLOCKWISE);	//90 degrees counter clockwise
-			break;
-
-		case DPAD_TOP:
-			dualMotorTurn(180, 40, COUNTER_CLOCKWISE);	//180 degrees counter clockwise
-			break;
-
-		case DPAD_BOTTOM:
-			dualMotorTurn(180, 40, CLOCKWISE);	//180 degrees clockwise
-			break;
-
-		} // switch (CTRL1_DPAD)
 	} // if(ChooseDriver == MainDriver)
 
 	else if(ChooseDriver == Scorer)
@@ -487,47 +466,6 @@ void processControls()
 		}
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
-
-void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turns using both motors
-{
-	int encoderCounts = TRACK_DISTANCE / DIAMETER * robotDegrees * 4;
-
-	// Set motors to No PID control as differential turns have problems
-	nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
-	nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
-
-	// Resets the encoders
-	nMotorEncoder[LeftWheels] = 0;
-	nMotorEncoder[RightWheels] = 0;
-
-	if (direction)	// Turns robot clockwise
-	{
-		nMotorEncoderTarget[LeftWheels] = -1 * encoderCounts;
-		nMotorEncoderTarget[RightWheels] = encoderCounts;
-		motor[LeftWheels] = -1 * power;
-		motor[RightWheels] = power;
-	}
-	else // Turns robot counter-clockwise
-	{
-		nMotorEncoderTarget[LeftWheels] = encoderCounts;
-		nMotorEncoderTarget[RightWheels] = -1 * encoderCounts;
-		motor[LeftWheels] = power;
-		motor[RightWheels] = -1 * power;
-	}
-
-	while((nMotorRunState[LeftWheels]!=runStateIdle)&&(nMotorRunState[RightWheels]!=runStateIdle))
-	{
-		// Do nothing while we wait for motors to spin to correct angles.
-	}
-
-	// Stop the motors
-	motor[LeftWheels] = 0;
-	motor[RightWheels] = 0;
-
-	// Set back to regulated motors so we dont have the wrong mode when exiting
-	nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
-	nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
-} // void dualMotorTurn(float robotDegrees, float power, bool direction)
 
 void moveLift(int encoderCounts)
 {
