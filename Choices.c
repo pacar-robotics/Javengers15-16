@@ -40,7 +40,7 @@ task main()
 		displayTextLine(3,"Left = PZ");
 		displayTextLine(4,"Right = Ramp");
 
-		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
+		while ((nNxtButtonPressed != LEFT_BUTTON)&&(nNxtButtonPressed != RIGHT_BUTTON))
 		{ // Ignore everything except left or right arrow.
 			//intentional
 		}
@@ -63,7 +63,7 @@ task main()
 		displayTextLine(3, "Left = Yes");
 		displayTextLine(4, "Right = No");
 
-		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
+		while ((nNxtButtonPressed != LEFT_BUTTON)&&(nNxtButtonPressed != RIGHT_BUTTON))
 		{ // Ignore everything except left or right arrow.
 			//intentional
 		}
@@ -88,7 +88,7 @@ task main()
 		displayTextLine(4, "Left = Correct");
 		displayTextLine(5, "Right = Redo");
 
-		while (!((nNxtButtonPressed == LEFT_BUTTON)&&(nNxtButtonPressed == RIGHT_BUTTON)))
+		while ((nNxtButtonPressed != LEFT_BUTTON)&&(nNxtButtonPressed != RIGHT_BUTTON))
 		{ // Ignore everything except left and right arrows.
 			//intentional
 		}
