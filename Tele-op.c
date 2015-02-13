@@ -417,14 +417,7 @@ void processControls()
 
 	if(ChooseDriver == MainDriver) // For Controller 1
 	{
-		if((nMotorEncoder[Lift] > LIFT_BASE + 500)&&(nMotorEncoder[Lift] < LIFT_LOWER)) // If lift is higher than base, let movements be slower
-		{
-			powerFactor = .25;
-		}
-		else
-		{
-			powerFactor = 1;
-		}
+		powerFactor = 1;
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
