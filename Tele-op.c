@@ -87,11 +87,11 @@ ChooseDriverEnum ChooseDriver;
 // Tasks
 task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
 task liftMoveCheck();	//turns off motor if lift is running
+task liftCheckMAX(); // Checks if lift is too high
+task liftCheckMIN(); // Checks if lift is too low
 task MUXTasks();
 
 // Functions for MUXTasks
-void liftCheckMAX(); // Checks if lift is too high
-void liftCheckMIN(); // Checks if lift is too low
 void checkLiftTouch(); // Checks if touch sensor on lift gets hit. Used with liftCheckMAX for safety
 void colorSignal();	//turns on color sensor if hooks is down, goaltouch has been detected, or both
 
@@ -124,6 +124,8 @@ task main()
 	clrTimers();
 	startTask (liftMoveCheck);
 	startTask (MUXTasks);
+	startTask (liftCheckMAX);
+	startTask (liftCheckMIN);
 
 	while (1) // Infinite loop, will end when match ends
 	{
@@ -154,43 +156,47 @@ task MUXTasks()
 {
 	while(true)
 	{
-		liftCheckMAX();
-		liftCheckMIN();
 		checkLiftTouch();
 		colorSignal();
 	}
 }
 
-void liftCheckMAX ()
+task liftCheckMAX ()
 {
-	if (nMotorEncoder[Lift] > LIFT_MAX) // Checks if lift is higher than it is supposed to be
+	while(true)
 	{
-		LiftState = Running;
-
-		while (nMotorEncoder[Lift] > LIFT_MAX) // Lowers lift until it is in the right position
+		if (nMotorEncoder[Lift] > LIFT_MAX) // Checks if lift is higher than it is supposed to be
 		{
-			motor[Lift] = -20;
-		}
+			LiftState = Running;
 
-		motor[Lift] = 0; // After lift is where it is supposed to be, stop it
-		LiftState = Stopped;
-	} // if (nMotorEncoder[Lift] > LIFT_MAX)
+			while (nMotorEncoder[Lift] > LIFT_MAX) // Lowers lift until it is in the right position
+			{
+				motor[Lift] = -20;
+			}
+
+			motor[Lift] = 0; // After lift is where it is supposed to be, stop it
+			LiftState = Stopped;
+		} // if (nMotorEncoder[Lift] > LIFT_MAX)
+	}
 } // task liftCheckMAX()
 
-void liftCheckMIN()
+task liftCheckMIN()
 {
-	if (nMotorEncoder[Lift] < LIFT_BASE - 1) // Checks if lift is lower than it is supposed to be
+	while(true)
 	{
-		LiftState = Running;
-
-		while (nMotorEncoder[Lift] < LIFT_BASE - 1) // Raises lift until it is in the right position
+		if (nMotorEncoder[Lift] < LIFT_BASE - 1) // Checks if lift is lower than it is supposed to be
 		{
-			motor[Lift] = 20;
-		}
+			LiftState = Running;
 
-		motor[Lift] = 0;// After lift is where it is supposed to be, stop it
-		LiftState = Stopped;
-	} // if (nMotorEncoder[Lift] < LIFT_BASE)
+			while (nMotorEncoder[Lift] < LIFT_BASE - 1) // Raises lift until it is in the right position
+			{
+				motor[Lift] = 20;
+			}
+
+			motor[Lift] = 0;// After lift is where it is supposed to be, stop it
+			LiftState = Stopped;
+		} // if (nMotorEncoder[Lift] < LIFT_BASE)
+	}
 } // task liftCheckMIN()
 
 
