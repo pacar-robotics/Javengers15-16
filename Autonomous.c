@@ -226,19 +226,19 @@ void rampFunction() //ramp, goals
 {
 	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
 	dualMotorTurn(6, 40, CLOCKWISE);
-	calcMove(60, 90, BACKWARD, REGULATED);
-	servo[Gate] = GATE_CLOSED;
+	calcMove(55, 90, BACKWARD, REGULATED);
+	calcMove(10, 15, BACKWARD, REGULATED);
 	moveLift(LIFT_MIDDLE);			//puts two balls in the middle goal
-	//servo[Gate] = GATE_CLOSED;
 	servo[Gate] = GATE_OPEN;
-	wait1Msec(10000);
-	//servo[Gate] = GATE_CLOSED;
+	wait1Msec(2000);
+	servo[Gate] = GATE_CLOSED;
 	moveLift(LIFT_BASE);
-	dualMotorTurn(20, 40, CLOCKWISE);
+	dualMotorTurn(5, 40, CLOCKWISE);
+	calcMove(5, 15, BACKWARD, REGULATED);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
-	dualMotorTurn(10, 40, CLOCKWISE);
+	dualMotorTurn(25, 40, CLOCKWISE);
 	wait1Msec(300); // Waits because the servo has time to move before the wheels start moving
-	calcMove(233, 90, FORWARD, REGULATED);
+	calcMove(237, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 40, COUNTER_CLOCKWISE);
 }
 
@@ -258,17 +258,19 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 			break;
 
 		case 3:	// for Position 2
-			calcMove(110, 50, FORWARD, REGULATED);
-			dualMotorTurn(30, 40, CLOCKWISE);
-			calcMove(25, 50, FORWARD, REGULATED);
-			dualMotorTurn(45, 70, CLOCKWISE);
+			calcMove(10, 20, FORWARD, REGULATED);
+			dualMotorTurn(3, 30, COUNTER_CLOCKWISE);
+			calcMove(100, 50, FORWARD, REGULATED);
+			dualMotorTurn(35, 40, CLOCKWISE);
+			calcMove(30, 50, FORWARD, REGULATED);
+			dualMotorTurn(50, 70, CLOCKWISE);
 			break;
 
 		case 5:	// for Position 3
 			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(30, 40, CLOCKWISE);
+			dualMotorTurn(25, 40, CLOCKWISE);
 			calcMove(60, 50, FORWARD, REGULATED);
-			dualMotorTurn(32, 40, COUNTER_CLOCKWISE);
+			dualMotorTurn(37, 40, COUNTER_CLOCKWISE);
 			calcMove(67, 50, FORWARD, REGULATED);
 			dualMotorTurn(90, 40, CLOCKWISE);
 			break;
