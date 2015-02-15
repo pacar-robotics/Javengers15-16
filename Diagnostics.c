@@ -56,6 +56,7 @@ void testLiftMotor();
 void testGateServo();
 void testHookServo();
 void testIRBeacon();
+void testSMUXOn();
 void testLiftLimitSensor();
 void testGoalTouchSensors();
 void testGoalTouchSensor1(); // Secondary to testGoalTouchSensors()
@@ -376,6 +377,17 @@ void testIRBeacon()
 		//found IR Beacon
 		displayTextLine(5,"Found IR, Dir:%d",irSeeker.acDirection);
 		wait1Msec(2000);
+	}
+}
+
+void testSMUXOn()
+{
+	if((TSreadState(GoalBaseTouch1) != 0)&&(TSreadState(GoalBaseTouch2) != 0)&&(TSreadState(LiftLimitTouch) != 0))
+	{ // If all are touched at the same time, then SMUX is most likely off
+		eraseDisplay();
+		displayBigTextLine(2, "MUX OFF");
+		displayTextLine(4, "Turn MUX on");
+		while((TSreadState(GoalBaseTouch1) == 0)&&(TSreadState(GoalBaseTouch2) == 0)&&(TSreadState(LiftLimitTouch) == 0));
 	}
 }
 
