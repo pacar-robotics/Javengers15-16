@@ -218,8 +218,6 @@ void initializeRobot()
 	nMotorEncoder[RightWheels] = 0;
 
 	nMotorEncoder[Lift] = 0;
-
-	nNoMessageCounterLimit = 500; // Stops robot faster on disconnects
 }
 
 void rampFunction() //ramp, goals
