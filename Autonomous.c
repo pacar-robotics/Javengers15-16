@@ -47,7 +47,7 @@
 
 // Goal Finger Positions
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 180
+#define GOAL_HOOKS_CLOSED 185
 
 //delay
 #define DELAY_TIME 10000
