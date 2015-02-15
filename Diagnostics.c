@@ -23,7 +23,7 @@
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 180
+#define GOAL_HOOKS_CLOSED 185
 
 //NXT Buttons
 #define LEFT_BUTTON 2
