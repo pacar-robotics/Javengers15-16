@@ -406,7 +406,6 @@ void testLiftLimitSensor()
 	}
 }
 
-
 void testGoalTouchSensors()
 {
 	testGoalTouchSensor1();
