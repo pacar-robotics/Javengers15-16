@@ -141,7 +141,6 @@ void initializeRobot ()
 	GateState = Closed;
 	SpindleState = Stopped;
 	ChooseDriver = MainDriver;
-	nNoMessageCounterLimit = 500; // Stops robot faster when Wi-Fi disconnects
 }
 
 void clrTimers()
