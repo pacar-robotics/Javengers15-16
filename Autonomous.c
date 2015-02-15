@@ -264,13 +264,34 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 			dualMotorTurn(50, 70, CLOCKWISE);
 			break;
 
-		case 5:	// for Position 3
+		case 5:
+		if(irSeeker.enhStrength > 65) // for Position 3
+		{
 			calcMove(30, 50, FORWARD, REGULATED);
 			dualMotorTurn(25, 40, CLOCKWISE);
 			calcMove(60, 50, FORWARD, REGULATED);
 			dualMotorTurn(37, 40, COUNTER_CLOCKWISE);
 			calcMove(67, 50, FORWARD, REGULATED);
 			dualMotorTurn(90, 40, CLOCKWISE);
+		}
+		else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65)) // for Position 2
+		{
+			calcMove(10, 20, FORWARD, REGULATED);
+			dualMotorTurn(3, 30, COUNTER_CLOCKWISE);
+			calcMove(100, 50, FORWARD, REGULATED);
+			dualMotorTurn(35, 40, CLOCKWISE);
+			calcMove(30, 50, FORWARD, REGULATED);
+			dualMotorTurn(50, 70, CLOCKWISE);
+		}
+		else if(irSeeker.enhStrength < 30) // for Position 1
+		{
+			calcMove(40, 50, FORWARD, REGULATED);
+			dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
+			calcMove(105, 50, FORWARD, REGULATED);
+			dualMotorTurn(130, 40, CLOCKWISE);
+			calcMove(55, 60, FORWARD, REGULATED);
+			dualMotorTurn(90, 40, CLOCKWISE);
+		}
 			break;
 	}	//switch
 }
