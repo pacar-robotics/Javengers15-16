@@ -62,7 +62,7 @@
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 180
+#define GOAL_HOOKS_CLOSED 185
 
 //Threshold for Joysticks, so it doesn't move when thumbs are slightly touching it
 #define JOYSTICK_THRESHOLD 10
