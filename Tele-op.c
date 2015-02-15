@@ -126,7 +126,7 @@ task main()
 	startTask (liftCheckMAX);
 	startTask (liftCheckMIN);
 
-	while (1) // Infinite loop, will end when match ends
+	while(true) // Infinite loop, will end when match ends
 	{
 		getJoystickSettings(joystick); // Gets current joystick settings
 		processControls();
@@ -417,7 +417,7 @@ void processControls()
 
 	if(ChooseDriver == MainDriver) // For Controller 1
 	{
-		powerFactor = 1;
+		powerFactor = 0.75;
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
@@ -445,7 +445,7 @@ void processControls()
 
 	else if(ChooseDriver == Scorer)
 	{
-		powerFactor = .125;	//for fine movements to adjust for scoring
+		powerFactor = 0.125;	//for fine movements to adjust for scoring
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
