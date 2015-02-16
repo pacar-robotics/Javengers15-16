@@ -61,6 +61,7 @@
 
 #define RAMP_START 1
 #define PARKING_ZONE 0
+#define BLOCK 3
 
 #define NEED_DELAY 1
 #define NO_DELAY 0
@@ -70,6 +71,7 @@
 void readChoices();	//reads choices made in Choices.c
 void rampFunction();	//goes down the ramp to collect goals
 void kickstand();		//kicks kickstand
+void blockFunction();	//blocks opponent from scoring balls
 void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
@@ -87,7 +89,7 @@ int TargetPosition;
 const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 
-enum StartingPositionEnum {ParkingZone, Ramp};
+enum StartingPositionEnum {ParkingZone, Ramp, Block};
 StartingPositionEnum StartingPosition;
 
 enum LiftStateEnum {Running, Stopped};
@@ -121,6 +123,10 @@ task main()
 	else if(StartingPosition == ParkingZone)
 	{
 		kickstand();
+	}
+	else if(StartingPosition == Block)
+	{
+		blockFunction();
 	}
 
 	while(true)
@@ -294,6 +300,12 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		}
 			break;
 	}	//switch
+}
+
+void blockFunction()
+{
+	calcMove(84, 70, FORWARD, REGULATED);
+	dualMotorTurn(45, 50, COUNTER_CLOCKWISE);
 }
 
 // for moving forward and backword
@@ -477,9 +489,13 @@ void readChoices() // Reads choices made in Choices.c
 	{
 		StartingPosition = Ramp;
 	}
-	else
+	else if(startingPositionShort == PARKING_ZONE)
 	{
 		StartingPosition = ParkingZone;
+	}
+	else
+	{
+		StartingPosition = Block;
 	}
 
 	if(delayShort == NEED_DELAY)

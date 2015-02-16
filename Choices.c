@@ -4,9 +4,11 @@
 //Buttons
 #define LEFT_BUTTON 2
 #define RIGHT_BUTTON 1
+#define CENTER_BUTTON 3
 
 #define RAMP_START 1
 #define PARKING_ZONE 0
+#define BLOCK 3
 
 #define NEED_DELAY 1
 #define NO_DELAY 0
@@ -39,9 +41,10 @@ task main()
 		displayTextLine(1, "Starting Pos:");
 		displayTextLine(3,"Left = PZ");
 		displayTextLine(4,"Right = Ramp");
+		displayTextLine(5, "Center = Block");
 
-		while ((nNxtButtonPressed != LEFT_BUTTON)&&(nNxtButtonPressed != RIGHT_BUTTON))
-		{ // Ignore everything except left or right arrow.
+		while ((nNxtButtonPressed != LEFT_BUTTON)&&(nNxtButtonPressed != RIGHT_BUTTON)&& (nNxtButtonPressed != CENTER_BUTTON))
+		{ // Ignore everything except left, right, or center.
 			//intentional
 		}
 
@@ -54,6 +57,11 @@ task main()
 		{
 			startingPositionChoice = "Ramp";
 			startingPositionShort = RAMP_START;
+		}
+		else if (nNxtButtonPressed == CENTER_BUTTON)
+		{
+			startingPositionChoice = "Block";
+			startingPositionShort = BLOCK;
 		}
 
 		wait1Msec(500);
