@@ -82,6 +82,7 @@ task main()
 	testGateServo();
 	testHookServo();
 	testIRBeacon();
+	testSMUXOn();
 	testLiftLimitSensor();
 	testGoalTouchSensors();
 	testColorSensor();
