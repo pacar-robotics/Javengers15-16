@@ -388,7 +388,7 @@ void testSMUXOn()
 		eraseDisplay();
 		displayBigTextLine(2, "MUX OFF");
 		displayTextLine(4, "Turn MUX on");
-		while((TSreadState(GoalBaseTouch1) == 0)&&(TSreadState(GoalBaseTouch2) == 0)&&(TSreadState(LiftLimitTouch) == 0));
+		while((TSreadState(GoalBaseTouch1) != 0)&&(TSreadState(GoalBaseTouch2) != 0)&&(TSreadState(LiftLimitTouch) != 0));
 	}
 }
 
