@@ -46,6 +46,7 @@ bool liftTouchSensorError = false;
 bool goalTouchError1 = false;
 bool goalTouchError2 = false;
 bool colorSensorError = false;
+bool skipSMUX = false;
 
 //Functions
 void testNXTBattery();
@@ -83,9 +84,12 @@ task main()
 	testHookServo();
 	testIRBeacon();
 	testSMUXOn();
-	testLiftLimitSensor();
-	testGoalTouchSensors();
-	testColorSensor();
+	if(skipSMUX)
+	{
+		testLiftLimitSensor();
+		testGoalTouchSensors();
+		testColorSensor();
+	}
 
 	eraseDisplay();
 	if(hasErrors)
@@ -388,7 +392,13 @@ void testSMUXOn()
 		eraseDisplay();
 		displayBigTextLine(2, "MUX OFF");
 		displayTextLine(4, "Turn MUX on");
-		while((TSreadState(GoalBaseTouch1) != 0)&&(TSreadState(GoalBaseTouch2) != 0)&&(TSreadState(LiftLimitTouch) != 0));
+		wait1Msec(500);
+		displayTextLine(6, "Skip by pressing button");
+		while(((TSreadState(GoalBaseTouch1) != 0)&&(TSreadState(GoalBaseTouch2) != 0)&&(TSreadState(LiftLimitTouch) != 0))&&
+			(nNxtButtonPressed < 0));
+			
+		if(nNxtButtonPressed < 0)
+			skipSMUX = true;
 	}
 }
 
