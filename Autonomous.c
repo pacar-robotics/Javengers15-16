@@ -304,8 +304,7 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 
 void blockFunction()
 {
-	calcMove(84, 70, FORWARD, REGULATED);
-	dualMotorTurn(45, 50, COUNTER_CLOCKWISE);
+	calcMove(130, 100, FORWARD, REGULATED);
 }
 
 // for moving forward and backword
