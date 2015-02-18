@@ -465,6 +465,18 @@ void processControls()
 		{
 			motor[LeftWheels] = 0;
 		}
+
+		switch(CTRL2_DPAD)
+		{
+			case DPAD_LEFT:
+				motor[LeftWheels] = 100 * powerFactor * 1.5;
+				motor[RightWheels] = -100 * powerFactor * 1.5;
+				break;
+
+			case DPAD_RIGHT:
+				motor[RightWheels] = 100 * powerFactor * 1.5;
+				motor[LeftWheels] = -100 * powerFactor * 1.5;
+		}
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
 
