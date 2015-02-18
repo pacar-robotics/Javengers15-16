@@ -403,7 +403,7 @@ void processControls()
 	} // if(BTN_GRAB_GOAL)
 
 	//  Wheels
-	if(nMotorEncoder[Lift] >= LIFT_LOWER)	//assigns driver depending on height of lift
+	if(nMotorEncoder[Lift] >= LIFT_LOWER - 10)	//assigns driver depending on height of lift
 	{
 		ChooseDriver = Scorer;
 	}
