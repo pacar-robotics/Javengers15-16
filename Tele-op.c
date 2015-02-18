@@ -416,7 +416,9 @@ void processControls()
 
 	if(ChooseDriver == MainDriver) // For Controller 1
 	{
-		powerFactor = 0.75;
+		nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
+		nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
+		powerFactor = 1;
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
@@ -444,6 +446,8 @@ void processControls()
 
 	else if(ChooseDriver == Scorer)
 	{
+		nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
+		nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
 		powerFactor = 0.125;	//for fine movements to adjust for scoring
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
