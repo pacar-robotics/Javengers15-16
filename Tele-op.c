@@ -43,9 +43,7 @@
 #define CTRL1_DPAD joystick.joy1_TopHat // Controller 1 Directional Pad
 #define CTRL2_DPAD joystick.joy2_TopHat // Controller 2 D-Pad
 // D-Pad possible positions
-#define DPAD_TOP 0
 #define DPAD_RIGHT 2
-#define DPAD_BOTTOM 4
 #define DPAD_LEFT 6
 
 // Lift
