@@ -51,8 +51,11 @@
 #define GOAL_HOOKS_CLOSED 185
 
 // Kickstand Servo
-#define KICKCLAW_IN 120
-#define KICKCLAW_OUT 135
+#define KICKCLAW_REVERSE_START 0
+#define KICKCLAW_FORWARD_START 255
+#define KICKCLAW_STOP 127
+#define KICKCLAW_MOVE_TIME 750 //in msec
+
 
 //delay
 #define DELAY_TIME 10000
@@ -81,6 +84,8 @@ void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
 void moveLift(int encoderCounts);
+void extendKickClaw();
+void retractKickClaw();
 
 //for irSeeker
 tHTIRS2 irSeeker;
@@ -127,12 +132,21 @@ task main()
 		//(nMotorEncoder[LeftWheels] <= 1800)
 		while((nMotorRunState[RightWheels] != runStateIdle)||(nMotorRunState[LeftWheels] != runStateIdle));
 	*/
-	calcMove(115, 40, FORWARD, REGULATED);
-	dualMotorTurn(120, 40, COUNTER_CLOCKWISE);
-	servo[KickClaw] = KICKCLAW_OUT;
-	wait1Msec(500);
-	calcMove(35, 40, BACKWARD, REGULATED);
-	dualMotorTurn(10, 30, CLOCKWISE);
+	calcMove(40, 40, FORWARD, REGULATED);
+	dualMotorTurn(15,40,CLOCKWISE);
+	calcMove(82,40,FORWARD,REGULATED);
+	dualMotorTurn(110, 40, COUNTER_CLOCKWISE);
+	calcMove(28,40,FORWARD,REGULATED);
+	extendKickClaw();
+	calcMove(30,75,BACKWARD,REGULATED);
+	retractKickClaw();
+
+	/*
+	dualMotorTurn(10,40,COUNTER_CLOCKWISE);
+	calcMove(25,50,BACKWARD,REGULATED);
+	dualMotorTurn(25,90,COUNTER_CLOCKWISE);
+	retractKickClaw();
+	*/
 }
 
 // Tasks
@@ -225,8 +239,8 @@ void initializeRobot()
 
 	nMotorEncoder[Lift] = 0;
 
-	servo[KickClaw] = KICKCLAW_IN;
-	wait1Msec(500);
+	retractKickClaw();
+
 }
 
 void rampFunction() //ramp, goals
@@ -503,4 +517,18 @@ void readChoices() // Reads choices made in Choices.c
 	{
 		isDelay = false;
 	}
+}
+
+void retractKickClaw()
+{
+	servo[KickClaw]=KICKCLAW_REVERSE_START;
+	wait1Msec(KICKCLAW_MOVE_TIME);
+	servo[KickClaw]=KICKCLAW_STOP;
+}
+
+void extendKickClaw()
+{
+	servo[KickClaw]=KICKCLAW_FORWARD_START;
+	wait1Msec(KICKCLAW_MOVE_TIME);
+	servo[KickClaw]=KICKCLAW_STOP;
 }
