@@ -8,7 +8,7 @@
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, openLoop, reversed, encoder)
-#pragma config(Servo,  srvo_S1_C3_1,    servo1,               tServoNone)
+#pragma config(Servo,  srvo_S1_C3_1,    KickClaw,             tServoContinuousRotation)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_4,    servo4,               tServoNone)
@@ -49,6 +49,12 @@
 #define GOAL_HOOKS_OPEN 10
 #define GOAL_HOOKS_CLOSED 185
 
+// Kickstand Servo
+#define KICKCLAW_REVERSE_START 0
+#define KICKCLAW_FORWARD_START 255
+#define KICKCLAW_STOP 127
+#define KICKCLAW_MOVE_TIME 750 //in msec
+
 //delay
 #define DELAY_TIME 10000
 
@@ -76,6 +82,8 @@ void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
 void moveLift(int encoderCounts);
+void extendKickClaw();
+void retractKickClaw();
 
 //for irSeeker
 tHTIRS2 irSeeker;
@@ -224,6 +232,8 @@ void initializeRobot()
 	nMotorEncoder[RightWheels] = 0;
 
 	nMotorEncoder[Lift] = 0;
+
+	retractKickClaw();
 }
 
 void rampFunction() //ramp, goals
@@ -253,53 +263,55 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 	switch(irSeeker.acDirection)
 	{
 		case 0: // for Position 1
-			calcMove(40, 50, FORWARD, REGULATED);
-			dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
-			calcMove(105, 50, FORWARD, REGULATED);
-			dualMotorTurn(130, 40, CLOCKWISE);
-			calcMove(55, 60, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
+			calcMove(74, 50, FORWARD, REGULATED);
+			dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
+			calcMove(55, 50, FORWARD, REGULATED);
+			extendKickClaw();
+			calcMove(55, 50, BACKWARD, REGULATED);
 			break;
 
 		case 3:	// for Position 2
-			calcMove(10, 20, FORWARD, REGULATED);
-			dualMotorTurn(3, 30, COUNTER_CLOCKWISE);
-			calcMove(100, 50, FORWARD, REGULATED);
-			dualMotorTurn(35, 40, CLOCKWISE);
-			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(50, 70, CLOCKWISE);
+			calcMove(40, 40, FORWARD, REGULATED);
+			dualMotorTurn(15, 40, CLOCKWISE);
+			calcMove(82,40,FORWARD,REGULATED);
+			dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
+			calcMove(28,40,FORWARD,REGULATED);
+			extendKickClaw();
+			calcMove(30,75,BACKWARD,REGULATED);
 			break;
 
 		case 5:
 		if(irSeeker.enhStrength > 65) // for Position 3
 		{
-			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(25, 40, CLOCKWISE);
-			calcMove(60, 50, FORWARD, REGULATED);
-			dualMotorTurn(37, 40, COUNTER_CLOCKWISE);
-			calcMove(67, 50, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
+			calcMove(50, 75, FORWARD, REGULATED);
+			dualMotorTurn(30, 60, CLOCKWISE);
+			calcMove(137, 60, FORWARD, REGULATED);
+			dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
+			calcMove(68, 50, FORWARD, REGULATED);
+			extendKickClaw();
+			calcMove(50, 50, BACKWARD, REGULATED);
 		}
 		else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65)) // for Position 2
 		{
-			calcMove(10, 20, FORWARD, REGULATED);
-			dualMotorTurn(3, 30, COUNTER_CLOCKWISE);
-			calcMove(100, 50, FORWARD, REGULATED);
-			dualMotorTurn(35, 40, CLOCKWISE);
-			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(50, 70, CLOCKWISE);
+			calcMove(40, 40, FORWARD, REGULATED);
+			dualMotorTurn(15, 40, CLOCKWISE);
+			calcMove(82,40,FORWARD,REGULATED);
+			dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
+			calcMove(28,40,FORWARD,REGULATED);
+			extendKickClaw();
+			calcMove(30,75,BACKWARD,REGULATED);
 		}
 		else if(irSeeker.enhStrength < 30) // for Position 1
 		{
-			calcMove(40, 50, FORWARD, REGULATED);
-			dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
-			calcMove(105, 50, FORWARD, REGULATED);
-			dualMotorTurn(130, 40, CLOCKWISE);
-			calcMove(55, 60, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
+			calcMove(74, 50, FORWARD, REGULATED);
+			dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
+			calcMove(55, 50, FORWARD, REGULATED);
+			extendKickClaw();
+			calcMove(55, 50, BACKWARD, REGULATED);
 		}
 			break;
 	}	//switch
+	retractKickClaw();
 }
 
 void blockFunction()
@@ -505,4 +517,18 @@ void readChoices() // Reads choices made in Choices.c
 	{
 		isDelay = false;
 	}
+}
+
+void retractKickClaw()
+{
+	servo[KickClaw]=KICKCLAW_REVERSE_START;
+	wait1Msec(KICKCLAW_MOVE_TIME);
+	servo[KickClaw]=KICKCLAW_STOP;
+}
+
+void extendKickClaw()
+{
+	servo[KickClaw]=KICKCLAW_FORWARD_START;
+	wait1Msec(KICKCLAW_MOVE_TIME);
+	servo[KickClaw]=KICKCLAW_STOP;
 }

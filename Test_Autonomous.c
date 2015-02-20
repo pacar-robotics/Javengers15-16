@@ -114,38 +114,38 @@ task main()
 {
 	initializeRobot();
 	/*
-		startTask (holdPosition);
-		startTask (LiftSafetyUpperLimitWatch);
-		startTask (LiftSafetyLowerLimitWatch);
-		startTask (LiftSafetyLimitTouchWatch);
+		// Pos 1
+		calcMove(74, 50, FORWARD, REGULATED);
+		dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
+		calcMove(55, 50, FORWARD, REGULATED);
+		extendKickClaw();
+		calcMove(55, 50, BACKWARD, REGULATED);
+		retractKickClaw();
 	*/
-	//waitForStart();
-	/*
-		nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
-		nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
-		nMotorEncoder[LeftWheels] = 0;
-		nMotorEncoder[RightWheels] = 0;
-		nMotorEncoderTarget[LeftWheels] = 1800;
-		nMotorEncoderTarget[RightWheels] = 1800;
-		motor[RightWheels] = 20;
-		motor[LeftWheels] = 20;
-		//(nMotorEncoder[LeftWheels] <= 1800)
-		while((nMotorRunState[RightWheels] != runStateIdle)||(nMotorRunState[LeftWheels] != runStateIdle));
-	*/
-	calcMove(40, 40, FORWARD, REGULATED);
-	dualMotorTurn(15,40,CLOCKWISE);
-	calcMove(82,40,FORWARD,REGULATED);
-	dualMotorTurn(110, 40, COUNTER_CLOCKWISE);
-	calcMove(28,40,FORWARD,REGULATED);
-	extendKickClaw();
-	calcMove(30,75,BACKWARD,REGULATED);
-	retractKickClaw();
 
 	/*
-	dualMotorTurn(10,40,COUNTER_CLOCKWISE);
-	calcMove(25,50,BACKWARD,REGULATED);
-	dualMotorTurn(25,90,COUNTER_CLOCKWISE);
-	retractKickClaw();
+		// Pos 2
+		calcMove(40, 40, FORWARD, REGULATED);
+		dualMotorTurn(15, 40, CLOCKWISE);
+		calcMove(82,40,FORWARD,REGULATED);
+		dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
+		calcMove(28,40,FORWARD,REGULATED);
+		extendKickClaw();
+		calcMove(30,75,BACKWARD,REGULATED);
+		retractKickClaw();
+	*/
+
+	/*
+		// Pos 3
+		initializeRobot();
+		calcMove(50, 75, FORWARD, REGULATED);
+		dualMotorTurn(30, 60, CLOCKWISE);
+		calcMove(137, 60, FORWARD, REGULATED);
+		dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
+		calcMove(68, 50, FORWARD, REGULATED);
+		extendKickClaw();
+		calcMove(50, 50, BACKWARD, REGULATED);
+		retractKickClaw();
 	*/
 }
 
@@ -358,9 +358,10 @@ void calcMove(float centimeters, float power, bool direction, bool isRegulated)
 	while((nMotorRunState[LeftWheels] != runStateIdle)&&(nMotorRunState[RightWheels] != runStateIdle))
 	{
 		// Do nothing while we wait for motors to spin to correct distance.
-
-		displayTextLine(1, "%d", nMotorEncoder[LeftWheels]);
-		displayTextLine(2, "%d", nMotorEncoder[RightWheels]);
+		/*
+			displayTextLine(1, "%d", nMotorEncoder[LeftWheels]);
+			displayTextLine(2, "%d", nMotorEncoder[RightWheels]);
+		*/
 	}
 
 	//stop the motors
