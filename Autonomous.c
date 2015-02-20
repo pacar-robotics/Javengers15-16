@@ -216,17 +216,21 @@ task LiftSafetyLimitTouchWatch(){
 
 void initializeRobot()
 {
+	readChoices(); // Reads choices from a file that is written in from a program called Choices
+
+	if(ParkingZone)
+	{
+		initSensor(&irSeeker, S2);
+		wait1Msec(250);
+
+		//wait for stability of sensor before setting the mode.
+		irSeeker.mode = DSP_1200;
+		wait1Msec(250);
+	}
+
 	// Initializes servos
 	servo[Gate] = GATE_CLOSED;
 	servo[Hooks] = GOAL_HOOKS_OPEN;
-
-	readChoices(); // Reads choices from a file that is written in from a program called Choices
-
-	initSensor(&irSeeker, S2);
-	wait1Msec(500);
-	//wait for stability of sensor before setting the mode.
-	irSeeker.mode = DSP_1200;
-	wait1Msec(500);
 
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
