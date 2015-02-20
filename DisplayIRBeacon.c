@@ -1,8 +1,8 @@
 #pragma config(Sensor, S2,     irseeker,       sensorHiTechnicIRSeeker1200)
 
 /*
-			Display IR Beacon Values
-																*/
+Display IR Beacon Values
+*/
 
 #include "hitechnic-irseeker-v2.h"	//for ir seeker
 
@@ -40,23 +40,33 @@ void displayIRBeaconValues()
 		displayTextLine(5, "Strength: %d", irSeeker.enhStrength);
 
 
-		//tells what position center field goal is in
-
-		/*switch(irSeeker.acDirection){
-			case 0:	// for Position 1
+		switch(irSeeker.acDirection)
+		{
+			case 0: // for Position 1
 				displayTextLine(6,"Position: 1");
+				break;
 
-			break;
-
-		case 3:	// for Position 2
+			case 3:	// for Position 2
 				displayTextLine(6,"Position: 2");
-			break;
+				break;
 
-		case 5:	// for Position 3
-				displayTextLine(6,"Position: 3");
-			break;
-		}
-*/
+			case 5:
+				if(irSeeker.enhStrength > 65)
+				{
+					displayTextLine(6,"Position: 3");
+				}
+				else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65)) // for Position 2
+				{
+					displayTextLine(6,"Position: 2");
+				}
+				else if(irSeeker.enhStrength < 30) // for Position 1
+				{
+					displayTextLine(6,"Position: 1");
+				}
+				break;
+			default:
+				displayTextLine(6, "Position: ?");
+		} //while(true)
 		wait1Msec(500);
-	} //while(true)
+	}
 }
