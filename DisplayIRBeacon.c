@@ -17,6 +17,7 @@ task main()
 	wait1Msec(500);
 	//for sensor to settle.
 	irSeeker.mode=DSP_1200;
+	wait1Msec(500);
 
 	displayIRBeaconValues();
 }
@@ -46,26 +47,28 @@ void displayIRBeaconValues()
 				displayTextLine(6,"Position: 1");
 				break;
 
-			case 3:	// for Position 2
-				displayTextLine(6,"Position: 2");
-				break;
-
 			case 5:
-				if(irSeeker.enhStrength > 65)
+				//For Competition		if(irSeeker.enhStrength > 65) // for Position 3
+				if(irSeeker.enhStrength >= 22)
 				{
 					displayTextLine(6,"Position: 3");
 				}
-				else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65)) // for Position 2
+
+				//For Competition: else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65))
+				else if(irSeeker.enhStrength < 22) // for Position 2
 				{
 					displayTextLine(6,"Position: 2");
 				}
+
+				/*
+
 				else if(irSeeker.enhStrength < 30) // for Position 1
 				{
 					displayTextLine(6,"Position: 1");
-				}
+				}*/
+
 				break;
-			default:
-				displayTextLine(6, "Position: ?");
+
 		} //while(true)
 		wait1Msec(500);
 	}
