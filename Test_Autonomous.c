@@ -271,47 +271,30 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 	switch(irSeeker.acDirection)
 	{
 	case 0: // for Position 1
-		calcMove(40, 50, FORWARD, REGULATED);
-		dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
-		calcMove(105, 50, FORWARD, REGULATED);
-		dualMotorTurn(130, 40, CLOCKWISE);
-		calcMove(55, 60, FORWARD, REGULATED);
-		dualMotorTurn(90, 40, CLOCKWISE);
+		calcMove(34, 50, FORWARD, REGULATED);
+		dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
+		calcMove(55, 50, FORWARD, REGULATED);
+		extendKickClaw();
+		calcMove(55, 50, BACKWARD, REGULATED);
 		break;
 
 	case 3:	// for Position 2
-		calcMove(90, 40, FORWARD, REGULATED);
-		dualMotorTurn(120, 40, COUNTER_CLOCKWISE);
-		calcMove(35, 40, BACKWARD, REGULATED);
+		dualMotorTurn(15, 40, CLOCKWISE);
+		calcMove(82,40,FORWARD,REGULATED);
+		dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
+		calcMove(28,40,FORWARD,REGULATED);
+		extendKickClaw();
+		calcMove(30,75,BACKWARD,REGULATED);
+		break;
 
 	case 5:
-		if(irSeeker.enhStrength > 65) // for Position 3
-		{
-			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(25, 40, CLOCKWISE);
-			calcMove(60, 50, FORWARD, REGULATED);
-			dualMotorTurn(37, 40, COUNTER_CLOCKWISE);
-			calcMove(67, 50, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
-		}
-		else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65)) // for Position 2
-		{
-			calcMove(10, 20, FORWARD, REGULATED);
-			dualMotorTurn(3, 30, COUNTER_CLOCKWISE);
-			calcMove(100, 50, FORWARD, REGULATED);
-			dualMotorTurn(35, 40, CLOCKWISE);
-			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(50, 70, CLOCKWISE);
-		}
-		else if(irSeeker.enhStrength < 30) // for Position 1
-		{
-			calcMove(40, 50, FORWARD, REGULATED);
-			dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
-			calcMove(105, 50, FORWARD, REGULATED);
-			dualMotorTurn(130, 40, CLOCKWISE);
-			calcMove(55, 60, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
-		}
+		calcMove(10, 75, FORWARD, REGULATED);
+		dualMotorTurn(30, 60, CLOCKWISE);
+		calcMove(137, 60, FORWARD, REGULATED);
+		dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
+		calcMove(68, 50, FORWARD, REGULATED);
+		extendKickClaw();
+		calcMove(50, 50, BACKWARD, REGULATED);
 		break;
 	}	//switch
 }
