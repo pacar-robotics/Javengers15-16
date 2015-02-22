@@ -55,6 +55,9 @@
 #define KICKCLAW_STOP 127
 #define KICKCLAW_MOVE_TIME 750 //in msec
 
+//delay
+#define DELAY_TIME 10000
+
 //used to regulate motors
 #define REGULATED true
 #define UNREGULATED false
@@ -65,6 +68,9 @@
 #define RAMP_START 1
 #define PARKING_ZONE 0
 #define BLOCK 3
+
+#define NEED_DELAY 1
+#define NO_DELAY 0
 
 
 //Functions
@@ -85,7 +91,6 @@ tHTIRS2 irSeeker;
 bool isDelay;
 int CurrentPosition;
 int TargetPosition;
-short delayTime;
 
 //const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
 //const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
@@ -116,7 +121,7 @@ task main()
 	// Robot specific code
 	if(isDelay)	// If there is a delay wait
 	{
-		wait1Msec(delayTime);
+		wait1Msec(DELAY_TIME);
 	}
 
 	if(StartingPosition == Ramp)
@@ -477,6 +482,7 @@ void readChoices() // Reads choices made in Choices.c
 	TFileHandle myFileHandle;
 	short myFileSize = 10;
 	short startingPositionShort;
+	short delayShort;
 
 	OpenRead(myFileHandle, nIoResult, DATA_FILE_NAME, myFileSize);
 
@@ -489,7 +495,7 @@ void readChoices() // Reads choices made in Choices.c
 
 	//reads choices
 	ReadShort(myFileHandle, nIoResult, startingPositionShort);
-	ReadShort(myFileHandle, nIoResult, delayTime);
+	ReadShort(myFileHandle, nIoResult, delayShort);
 	Close(myFileHandle, nIoResult);
 
 	//sets values depending on choices
@@ -507,7 +513,7 @@ void readChoices() // Reads choices made in Choices.c
 		StartingPosition = Block;
 	}
 
-	if(delayTime != 0)
+	if(delayShort == NEED_DELAY)
 	{
 		isDelay = true;
 	}
