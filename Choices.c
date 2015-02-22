@@ -10,20 +10,15 @@
 #define PARKING_ZONE 0
 #define BLOCK 3
 
-#define NEED_DELAY 1
-#define NO_DELAY 0
-
 
 task main()
 {
 	TFileIOResult nIoResult;
 	TFileHandle myFileHandle;
-	string fileLine;
 	string startingPositionChoice;
-	string delayChoice;
 	short myFileSize = 10;
 	short startingPositionShort;
-	short delayShort;
+	short delayTime = 0;
 	bool choicesConfirmed = false;
 
 	Delete(DATA_FILE_NAME, nIoResult); // Deleting old file
@@ -78,13 +73,37 @@ task main()
 
 		if(nNxtButtonPressed == LEFT_BUTTON)
 		{
-			delayChoice = "Yes";
-			delayShort = NEED_DELAY;
+			eraseDisplay();
+			while(nNxtButtonPressed != CENTER_BUTTON)
+			{
+				displayTextLine(1, "Choose Delay Time:");
+				displayTextLine(2, "Press center key to submit");
+				displayTextLine(4, "%d", delayTime);
+
+				if(nNxtButtonPressed == RIGHT_BUTTON)
+				{
+					if(time1[T1] > 500)		//checks to see if button isn't pressed too fast
+					{
+						++delayTime;
+						eraseDisplay();
+						clearTimer(T1);
+					}
+				}
+				else if(nNxtButtonPressed == LEFT_BUTTON)
+				{
+					if(time1[T1] > 500)		//checks to see if button isn't pressed too fast
+					{
+						++delayTime;
+						eraseDisplay();
+						clearTimer(T1);
+					}
+				}
+			}
+			eraseDisplay();
 		}
 		else if (nNxtButtonPressed == RIGHT_BUTTON)
 		{
-			delayChoice = "None";
-			delayShort = NO_DELAY;
+			delayTime = 0;
 		}
 
 		wait1Msec(500);
@@ -92,7 +111,7 @@ task main()
 
 		//confirmation
 		displayTextLine(2, "Start pos: %s", startingPositionChoice);
-		displayTextLine(3, "Delay: %s", delayChoice);
+		displayTextLine(3, "Delay Time: %d", delayTime);
 		displayTextLine(4, "Left = Correct");
 		displayTextLine(5, "Right = Redo");
 
@@ -118,7 +137,7 @@ task main()
 
 	//writing on to file
 	WriteShort(myFileHandle, nIoResult, startingPositionShort);
-	WriteShort(myFileHandle, nIoResult, delayShort);
+	WriteShort(myFileHandle, nIoResult, delayTime);
 	Close(myFileHandle, nIoResult);
 
 	if(nIoResult) // Error to writing or closing file
