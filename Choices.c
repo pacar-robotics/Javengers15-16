@@ -93,7 +93,7 @@ task main()
 				{
 					if(time1[T1] > 500)		//checks to see if button isn't pressed too fast
 					{
-						++delayTime;
+						--delayTime;
 						eraseDisplay();
 						clearTimer(T1);
 					}
