@@ -116,7 +116,7 @@ task main()
 	// Robot specific code
 	if(isDelay)	// If there is a delay wait
 	{
-		wait1Msec(delayTime);
+		wait1Msec(delayTime*1000);
 	}
 
 	if(StartingPosition == Ramp)
