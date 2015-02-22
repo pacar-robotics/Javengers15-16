@@ -72,6 +72,9 @@
 #define TRACK_DISTANCE 48
 #define RAMP_DISTANCE 150
 
+// File for ScorerPowerFactor
+#define FILE_NAME "ScorerPowerfactor.txt"
+
 enum SpindleStateEnum {Running, Stopped}; // State of Spindle
 enum LiftStateEnum {Running, Stopped}; // State of Lift
 enum GateStateEnum {Open, Closed}; // State of gate
@@ -100,6 +103,7 @@ void processControls(); // Has uses for buttons
 
 // Secondary Functions
 void moveLift(int encoderCounts); // Moves lift to specified position
+void readScorerPowerFactor();
 
 const tMUXSensor GoalBaseTouch1 = msensor_S4_1;	//for use of multiplexer
 const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
@@ -107,7 +111,8 @@ const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 int TargetPosition = 0; // Used in holdPosition
 int CurrentPosition = 0; // Used in moveLift
-float powerFactor; // Used in driving, when lift is up, powerFactor goes down
+float mainPowerFactor = 1; // Used in driving, when lift is up, powerFactor goes down
+float scorerPowerFactor;
 
 // For smoothing out the wheel movements
 int prev_Joy1Y1;
@@ -139,6 +144,25 @@ void initializeRobot ()
 	GateState = Closed;
 	SpindleState = Stopped;
 	ChooseDriver = MainDriver;
+	readScorerPowerFactor();
+}
+
+void readScorerPowerFactor()
+{
+	TFileIOResult nIoResult;
+	TFileHandle myFileHandle;
+	short myFileSize = 10;
+
+	OpenRead(myFileHandle, nIoResult, FILE_NAME, myFileSize);
+
+	if(nIoResult) // Error in opening file for read
+	{
+		playTone(5000, 5);
+		scorerPowerFactor = 0.125;
+	}
+
+	ReadFloat(myFileHandle, nIoResult, scorerPowerFactor);
+	Close(myFileHandle, nIoResult);
 }
 
 void clrTimers()
@@ -416,12 +440,12 @@ void processControls()
 	{
 		nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
 		nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
-		powerFactor = 1;
+		mainPowerFactor = 1;
 
 		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
 			//multiplied by power factor to become slower (less jerking)
-			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * powerFactor);
+			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * mainPowerFactor);
 		}
 		else
 		{
@@ -432,7 +456,7 @@ void processControls()
 
 		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = (int)(((CTRL1_JOY_RIGHT_Y + prev_Joy1Y2)/2) * powerFactor);
+			motor[LeftWheels] = (int)(((CTRL1_JOY_RIGHT_Y + prev_Joy1Y2)/2) * mainPowerFactor);
 		}
 		else
 		{
@@ -446,11 +470,10 @@ void processControls()
 	{
 		nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
 		nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
-		powerFactor = 0.125;	//for fine movements to adjust for scoring
 
 		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * powerFactor);
+			motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * scorerPowerFactor);
 		}
 		else
 		{
@@ -459,7 +482,7 @@ void processControls()
 
 		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
 		{
-			motor[LeftWheels] = (int)(CTRL2_JOY_RIGHT_Y * powerFactor);
+			motor[LeftWheels] = (int)(CTRL2_JOY_RIGHT_Y * scorerPowerFactor);
 		}
 		else
 		{
@@ -469,13 +492,13 @@ void processControls()
 		switch(CTRL2_DPAD)
 		{
 			case DPAD_LEFT:
-				motor[LeftWheels] = 100 * powerFactor * 1.5;
-				motor[RightWheels] = -100 * powerFactor * 1.5;
+				motor[LeftWheels] = 100 * scorerPowerFactor * 1.5;
+				motor[RightWheels] = -100 * scorerPowerFactor * 1.5;
 				break;
 
 			case DPAD_RIGHT:
-				motor[RightWheels] = 100 * powerFactor * 1.5;
-				motor[LeftWheels] = -100 * powerFactor * 1.5;
+				motor[RightWheels] = 100 * scorerPowerFactor * 1.5;
+				motor[LeftWheels] = -100 * scorerPowerFactor * 1.5;
 		}
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
