@@ -297,6 +297,7 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		calcMove(50, 50, BACKWARD, REGULATED);
 		break;
 	}	//switch
+	retractKickClaw();
 }
 
 void blockFunction()
