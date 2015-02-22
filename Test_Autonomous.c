@@ -264,7 +264,9 @@ void rampFunction() //ramp, goals
 
 void kickstand()	//kicks kickstand depending on directional value of irseeker
 {
+	calcMove(40, 50, FORWARD, REGULATED);
 	readSensor(&irSeeker); // Reads the IR sensor values
+	wait1Msec(500);
 
 	switch(irSeeker.acDirection)
 	{
