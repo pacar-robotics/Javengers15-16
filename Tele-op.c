@@ -60,10 +60,11 @@
 
 //Goal Hooks
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 185
+#define GOAL_HOOKS_CLOSED 250
 
-//Threshold for Joysticks, so it doesn't move when thumbs are slightly touching it
+//Threshold for Joysticks
 #define JOYSTICK_THRESHOLD 10
+#define TURN_THRESHOLD 80
 
 // Used for dualMotorTurn
 #define CLOCKWISE true
@@ -72,8 +73,9 @@
 #define TRACK_DISTANCE 48
 #define RAMP_DISTANCE 150
 
+
 // File for ScorerPowerFactor
-#define FILE_NAME "Powerfactors.txt"
+#define PARAMETER_FILE_NAME "Powerfactors.txt"
 
 enum SpindleStateEnum {Running, Stopped}; // State of Spindle
 enum LiftStateEnum {Running, Stopped}; // State of Lift
@@ -100,6 +102,7 @@ void colorSignal();	//turns on color sensor if hooks is down, goaltouch has been
 void initializeRobot(); // Gets robot ready for Tele-op
 void clrTimers(); // Clears timers needed for buttons
 void processControls(); // Has uses for buttons
+bool isTurn(int leftJoystick, int rightJoystick);
 
 // Secondary Functions
 void moveLift(int encoderCounts); // Moves lift to specified position
@@ -126,6 +129,7 @@ task main()
 {
 	initializeRobot();
 	waitForStart();
+
 
 	clrTimers();
 	startTask (liftMoveCheck);
@@ -155,6 +159,9 @@ void readPowerFactors()
 {
 	TFileIOResult nIoResult;
 	TFileHandle myFileHandle;
+	short myFileSize = 100;
+
+	OpenRead(myFileHandle, nIoResult, PARAMETER_FILE_NAME, myFileSize);
 
 	if(nIoResult)
 	{
@@ -170,11 +177,14 @@ void readPowerFactors()
 		ReadFloat(myFileHandle, nIoResult, scorerPowerFactor);
 		ReadFloat(myFileHandle, nIoResult, mainPowerFactorTurn);
 		ReadFloat(myFileHandle, nIoResult, scorerPowerFactorTurn);
+		Close(myFileHandle, nIoResult);
+		if(nIoResult)
+		{
+			playTone(5000, 10);
+		}
 	}
 
-	Close(myFileHandle, nIoResult);
 }
-
 void clrTimers()
 {
 	clearTimer (T1);	// Timer used for Spindle
@@ -451,29 +461,36 @@ void processControls()
 		nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
 		nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
 
-		if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
+		if(isTurn(CTRL1_JOY_LEFT_Y, CTRL1_JOY_RIGHT_Y))
 		{
-			//multiplied by power factor to become slower (less jerking)
-			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * mainPowerFactor);
+			motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * mainPowerFactorTurn);
+			motor[LeftWheels] = (int)(((CTRL1_JOY_RIGHT_Y + prev_Joy1Y2)/2) * mainPowerFactorTurn);
 		}
 		else
 		{
-			motor[RightWheels] = 0;
-		}
-		prev_Joy1Y1 = CTRL1_JOY_LEFT_Y;
+			if(abs(CTRL1_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
+			{
+				//multiplied by power factor to become slower (less jerking)
+				motor[RightWheels] = (int)(((CTRL1_JOY_LEFT_Y + prev_Joy1Y1)/2) * mainPowerFactor);
+			}
+			else
+			{
+				motor[RightWheels] = 0;
+			}
+			prev_Joy1Y1 = CTRL1_JOY_LEFT_Y;
 
-		if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
-		{
-			motor[LeftWheels] = (int)(((CTRL1_JOY_RIGHT_Y + prev_Joy1Y2)/2) * mainPowerFactor);
-		}
-		else
-		{
-			motor[LeftWheels] = 0;
-		}
-		prev_Joy1Y2 = CTRL1_JOY_RIGHT_Y;
+			if(abs(CTRL1_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
+			{
+				motor[LeftWheels] = (int)(((CTRL1_JOY_RIGHT_Y + prev_Joy1Y2)/2) * mainPowerFactor);
+			}
+			else
+			{
+				motor[LeftWheels] = 0;
+			}
+			prev_Joy1Y2 = CTRL1_JOY_RIGHT_Y;
 
-		switch(CTRL1_DPAD)
-		{
+			/*switch(CTRL1_DPAD)
+			{
 			case DPAD_LEFT:
 				motor[LeftWheels] = 100 * mainPowerFactorTurn;
 				motor[RightWheels] = -100 * mainPowerFactorTurn;
@@ -481,7 +498,9 @@ void processControls()
 
 			case DPAD_RIGHT:
 				motor[RightWheels] = 100 * mainPowerFactorTurn;
-				motor[LeftWheels] = -100 * mainPowerFactor;
+				motor[LeftWheels] = -100 * mainPowerFactorTurn;
+				break;
+			}*/
 		}
 	} // if(ChooseDriver == MainDriver)
 	else if(ChooseDriver == Scorer)
@@ -489,26 +508,33 @@ void processControls()
 		nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
 		nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
 
-		if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
+		if(isTurn(CTRL2_JOY_LEFT_Y, CTRL2_JOY_RIGHT_Y))
 		{
-			motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * scorerPowerFactor);
+			motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * scorerPowerFactorTurn);
+			motor[LeftWheels] = (int)(CTRL2_JOY_RIGHT_Y * scorerPowerFactorTurn);
 		}
 		else
 		{
-			motor[RightWheels] = 0;
-		}
+			if(abs(CTRL2_JOY_LEFT_Y) > JOYSTICK_THRESHOLD)
+			{
+				motor[RightWheels] = (int)(CTRL2_JOY_LEFT_Y * scorerPowerFactor);
+			}
+			else
+			{
+				motor[RightWheels] = 0;
+			}
 
-		if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
-		{
-			motor[LeftWheels] = (int)(CTRL2_JOY_RIGHT_Y * scorerPowerFactor);
-		}
-		else
-		{
-			motor[LeftWheels] = 0;
-		}
+			if(abs(CTRL2_JOY_RIGHT_Y) > JOYSTICK_THRESHOLD)
+			{
+				motor[LeftWheels] = (int)(CTRL2_JOY_RIGHT_Y * scorerPowerFactor);
+			}
+			else
+			{
+				motor[LeftWheels] = 0;
+			}
 
-		switch(CTRL2_DPAD)
-		{
+			/*switch(CTRL2_DPAD)
+			{
 			case DPAD_LEFT:
 				motor[LeftWheels] = 100 * scorerPowerFactorTurn;
 				motor[RightWheels] = -100 * scorerPowerFactorTurn;
@@ -516,11 +542,28 @@ void processControls()
 
 			case DPAD_RIGHT:
 				motor[RightWheels] = 100 * scorerPowerFactorTurn;
-				motor[LeftWheels] = -100 * scorerPowerFactor;
+				motor[LeftWheels] = -100 * scorerPowerFactorTurn;
+				break;
+			}*/
 		}
 	} // else if(ChooseDriver == Scorer)
 } // void processControls()
 
+bool isTurn(int leftJoystick, int rightJoystick)
+{
+	if((leftJoystick > TURN_THRESHOLD)&&(rightJoystick < (TURN_THRESHOLD*-1)))
+	{
+		return true;
+	}
+	else if((rightJoystick > TURN_THRESHOLD)&&(leftJoystick < (TURN_THRESHOLD*-1)))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 void moveLift(int encoderCounts)
 {
 	nMotorPIDSpeedCtrl[Lift] = mtrSpeedReg;
@@ -536,7 +579,7 @@ void moveLift(int encoderCounts)
 		// Check if we are travelling below the lower goal, special handling, until counterweight deployed.
 		LiftState = Running;
 		nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-		motor[Lift] = -75;
+		motor[Lift] = -85;
 
 		while(nMotorRunState[Lift] != runStateIdle && nMotorEncoder[Lift] >= LIFT_LOWER)
 		{
@@ -549,7 +592,7 @@ void moveLift(int encoderCounts)
 			// We are now below the height of the lower base and need to slow down to let the last segment fall slowly
 			// This should only execute when the target is the base of the lift
 			nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-			motor[Lift] = -30;
+			motor[Lift] = -45;
 			while(nMotorRunState[Lift] != runStateIdle)
 			{
 				//let the motor reach the target
