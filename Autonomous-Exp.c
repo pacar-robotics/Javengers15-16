@@ -30,7 +30,7 @@
 
 // Measurements
 #define DIAMETER 7.62
-#define TRACK_DISTANCE 48
+#define TRACK_DISTANCE 55
 #define RAMP_DISTANCE 155
 
 // Directions
@@ -78,7 +78,7 @@ void rampFunction();	//goes down the ramp to collect goals
 void kickstand();		//kicks kickstand
 void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
-void dualMotorTurn(float robotDegrees, float power, bool direction);
+void dualMotorTurn(float robotDegrees, float power, bool direction, bool isRegulated); //use power >60 if regulated
 void moveLift(int encoderCounts);
 
 //for irSeeker
@@ -87,8 +87,7 @@ tHTIRS2 irSeeker;
 //for gyro
 tHTGYRO gyroSensor;
 
-//for color
-tHTCS2 colorSensor;
+
 
 
 bool isDelay;
@@ -109,7 +108,7 @@ LiftStateEnum LiftState;
 task holdPosition();
 task LiftSafetyUpperLimitWatch();
 task LiftSafetyLowerLimitWatch();
-task LiftSafetyLimitTouchWatch();
+//task LiftSafetyLimitTouchWatch();
 task IntegrateGyroHeading();
 
 float gyroHeading =0.0;
@@ -127,6 +126,16 @@ task main()
 	//waitForStart();
 
 	// Robot specific code
+
+	//testing accuracy of turns.
+
+
+
+	//dualMotorTurn(90,70,COUNTER_CLOCKWISE,REGULATED);
+
+
+
+
 	if(isDelay)	// If there is a delay wait
 	{
 		wait1Msec(DELAY_TIME);
@@ -146,6 +155,7 @@ task main()
 		//intentional
 
 	}
+
 }
 
 // Tasks
@@ -234,17 +244,15 @@ void initializeRobot()
 
 	wait1Msec(500);
 
-	initSensor(&colorSensor, S3);
 
 
 
 	//Initialise and configure struct and port for gyro
- initSensor(&gyroSensor, msensor_S4_4);
+	//adjusted:
+
+ 	initSensor(&gyroSensor, msensor_S4_4);
   // Start the calibration and display the offset
  	sensorCalibrate(&gyroSensor);
- 	wait1Msec(6000);
-
-
 
   //erase display and show offset
  	eraseDisplay();
@@ -263,43 +271,46 @@ void rampFunction() //ramp, goals
 	int directionError =0;
 	float CorrectedDistance=0.0;
 	float CorrectedAngle=0.0;
+	float Shift=0.0;
 
 	//start the Gyro value integration in order to correct for the ramp direction errors
 	gyroHeading=0.0;
 	startTask(IntegrateGyroHeading);
 	calcMove(RAMP_DISTANCE, 30, BACKWARD, REGULATED);		//goes down ramp
+
+	stopTask(IntegrateGyroHeading);
 	//stop the Gyro Integration task.
 	//Now use values.
-
-
 
 	directionError=(int)gyroHeading;
 
 	eraseDisplay();
 	displayTextLine(1,"Dir Head: %d", gyroHeading);
 	displayTextLine(2,"Dir Err: %d", directionError);
-	wait1Msec(500);
+	wait1Msec(5000);
 
 	//now correct for this error.
 
 	//positive error, turn counter clockwise
 	if(directionError>0){
-		dualMotorTurn(directionError, 40, COUNTER_CLOCKWISE);
-	}
+		playTone(5000,5);
+		//calculated, Shift, Corrected Angles and Distance
+		Shift=(sinDegrees(abs(directionError))/(cosDegrees(abs(directionError))))*RAMP_DISTANCE;
 
-	//negative error, turn clockwise,  (trigonometry), to get to same spot
-	//not clear if this is more accurate than dead reckoning turns used before.
-	//needs testing.
-	if(directionError<0){
+		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2));
+		CorrectedAngle=90+abs(directionError)-(atan(65/Shift)*(180/PI));
 
-		CorrectedDistance=sqrt(pow(sinDegrees(abs(directionError))*RAMP_DISTANCE,2)+pow(65,2));
-		CorrectedAngle=90+directionError-atan(65/(sinDegrees(abs(directionError))*RAMP_DISTANCE))*180/PI;
-		dualMotorTurn(CorrectedAngle,70,CLOCKWISE);
-		calcMove(CorrectedDistance,70,BACKWARD, REGULATED);
-		//finally turn to correct for final orientation.
-		//read gyro heading now.
-		directionError=(int)gyroHeading;
-		//dualMotorTurn(90-atan(65/(sinDegrees(abs(directionError))*RAMP_DISTANCE))*180/PI,70,COUNTER_CLOCKWISE);
+		eraseDisplay();
+		displayTextLine(1,"Corr Angle:%4f", CorrectedAngle);
+		displayTextLine(2,"Corr Dist: %4f", CorrectedDistance-5); //with adjustment to avoid hitting perimeter
+
+		wait1Msec(5000);
+
+		dualMotorTurn(CorrectedAngle,70,COUNTER_CLOCKWISE,REGULATED);
+
+		calcMove(CorrectedDistance-5,30,BACKWARD, REGULATED);
+
+		dualMotorTurn(90-(atan(65/Shift)*(180/PI)),70,CLOCKWISE, REGULATED);
 		//display new heading error
 
 		eraseDisplay();
@@ -307,12 +318,43 @@ void rampFunction() //ramp, goals
 
 		//correct for that heading.
 
-		//dualMotorTurn(abs(directionError),70,COUNTER_CLOCKWISE)
-		//depending on testing may or may not need this.
+	}
+
+	//negative error, turn clockwise,  (trigonometry), to get to same spot
+	//not clear if this is more accurate than dead reckoning turns used before.
+	//needs testing.
+	if(directionError<0){
+
+
+	  //calculated, Shift, Corrected Angles and Distance
+		Shift=(sinDegrees(abs(directionError))/(cosDegrees(abs(directionError))))*RAMP_DISTANCE;
+
+		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2));
+		CorrectedAngle=90+abs(directionError)-(atan(65/Shift)*(180/PI));
+
+		eraseDisplay();
+		displayTextLine(1,"Corr Angle:%4f", CorrectedAngle);
+		displayTextLine(2,"Corr Dist: %4f", CorrectedDistance);
+
+		wait1Msec(5000);
+
+
+
+		dualMotorTurn(CorrectedAngle,70,CLOCKWISE,REGULATED);
+
+		calcMove(CorrectedDistance,30,BACKWARD, REGULATED);
+
+		dualMotorTurn(90-(atan(65/Shift)*(180/PI)),70,COUNTER_CLOCKWISE, REGULATED);
+		//display new heading error
+
+		eraseDisplay();
+		displayTextLine(2,"Err Head:%4f", directionError);
+
+		//correct for that heading.
 
 	}
 
-
+wait1Msec(5000);
 	//dualMotorTurn(5,40,COUNTER_CLOCKWISE);
 	calcMove(2,70,BACKWARD,REGULATED);
 
@@ -326,15 +368,15 @@ void rampFunction() //ramp, goals
 
 
 
-	dualMotorTurn(5, 40, CLOCKWISE);
+	dualMotorTurn(5, 40, CLOCKWISE, REGULATED);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
 	wait1Msec(300);
 	// Waits because the servo has time to move before the wheels start moving
 
-	dualMotorTurn(12, 60, CLOCKWISE);
+	dualMotorTurn(12, 60, CLOCKWISE, REGULATED);
 
 	calcMove(245, 90, FORWARD, REGULATED);
-	dualMotorTurn(180, 60, COUNTER_CLOCKWISE);
+	dualMotorTurn(180, 60, COUNTER_CLOCKWISE, REGULATED);
 
 
 
@@ -349,29 +391,29 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 
 	case 3:	// for Position 2
 		calcMove(110, 50, FORWARD, REGULATED);
-		dualMotorTurn(30, 40, CLOCKWISE);
+		dualMotorTurn(30, 40, CLOCKWISE, REGULATED);
 		calcMove(25, 50, FORWARD, REGULATED);
-		dualMotorTurn(45, 70, CLOCKWISE);
+		dualMotorTurn(45, 70, CLOCKWISE, REGULATED);
 		break;
 
 	case 5:	// for Position 3
 		if(irSeeker.enhStrength < 54)
 		{
 			calcMove(40, 50, FORWARD, REGULATED);
-			dualMotorTurn(40, 40, COUNTER_CLOCKWISE);
+			dualMotorTurn(40, 40, COUNTER_CLOCKWISE, REGULATED);
 			calcMove(105, 50, FORWARD, REGULATED);
-			dualMotorTurn(130, 40, CLOCKWISE);
+			dualMotorTurn(130, 40, CLOCKWISE, REGULATED);
 			calcMove(55, 60, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
+			dualMotorTurn(90, 40, CLOCKWISE, REGULATED);
 		}
 		if(irSeeker.enhStrength > 54)
 		{
 			calcMove(30, 50, FORWARD, REGULATED);
-			dualMotorTurn(30, 40, CLOCKWISE);
+			dualMotorTurn(30, 40, CLOCKWISE, REGULATED);
 			calcMove(60, 50, FORWARD, REGULATED);
-			dualMotorTurn(32, 40, COUNTER_CLOCKWISE);
+			dualMotorTurn(32, 40, COUNTER_CLOCKWISE, REGULATED);
 			calcMove(67, 50, FORWARD, REGULATED);
-			dualMotorTurn(90, 40, CLOCKWISE);
+			dualMotorTurn(90, 40, CLOCKWISE, REGULATED);
 		}
 		break;
 	}	//switch
@@ -427,13 +469,19 @@ void calcMove(float centimeters, float power, bool direction, bool isRegulated)
 }
 
 //for turning with two wheels
-void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turns using both motors
+void dualMotorTurn(float robotDegrees, float power, bool direction, bool isRegulated) //robot turns using both motors
 {
-	int encoderCounts = ( TRACK_DISTANCE / DIAMETER) * robotDegrees * 4;
+	float encoderCounts = ( TRACK_DISTANCE / DIAMETER) * robotDegrees * 4;
 
-	// Set motors to No PID control as differential turns have problems
-	nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
-	nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
+	// PID control at low speeds have problems for turning. Use higher power (>60)
+
+	if(isRegulated){
+		nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
+		nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
+	}else{
+			nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
+			nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
+	}
 
 	nMotorEncoder[LeftWheels] = 0;
 	nMotorEncoder[RightWheels] = 0;
@@ -455,6 +503,7 @@ void dualMotorTurn(float robotDegrees, float power, bool direction) //robot turn
 
 	while((nMotorRunState[LeftWheels] != runStateIdle) && (nMotorRunState[RightWheels] != runStateIdle))
 	{
+
 		//do nothing while we wait for motors to spin to correct angles.
 	}
 
@@ -574,15 +623,15 @@ void readChoices() // Reads choices made in Choices.c
 }
 
 task IntegrateGyroHeading(){
-  clearTimer(T1);
+  time1[T1]=0;
 	while(true){
-		if(time1[T1]>100){
-				readSensor(&gyroSensor);
-				//add the current rotation reading to the previous readings dividing by time elapsed
-				gyroHeading =gyroHeading+ gyroSensor.rotation/(10);
-				clearTimer(T1);
-
+		while(time1[T1]<20){
+				wait1Msec(1);
 		}
+		time1[T1]=0;
+		readSensor(&gyroSensor);
+		//add the current rotation reading to the previous readings dividing by time elapsed
+		gyroHeading =gyroHeading+ (gyroSensor.rotation)*0.02;
 	}
 
 }
