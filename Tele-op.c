@@ -89,7 +89,6 @@ ChooseDriverEnum ChooseDriver;
 
 // Tasks
 task holdPosition(); // Holds position of lift because there is too much weight to hold with no power
-task liftMoveCheck();	//turns off motor if lift is running
 task liftCheckMAX(); // Checks if lift is too high
 task liftCheckMIN(); // Checks if lift is too low
 task MUXTasks();
@@ -132,7 +131,6 @@ task main()
 
 
 	clrTimers();
-	startTask (liftMoveCheck);
 	startTask (MUXTasks);
 	startTask (liftCheckMAX);
 	startTask (liftCheckMIN);
@@ -274,15 +272,6 @@ task holdPosition()
 	} // while(true)
 } // task holdPosition()
 
-// turns off the motors if the lift is running
-task liftMoveCheck()
-{
-	if(LiftState == Running)
-	{
-		motor[LeftWheels] = 0;
-		motor[RightWheels] = 0;
-	}
-}
 
 void colorSignal()
 {
@@ -573,6 +562,9 @@ void moveLift(int encoderCounts)
 
 	servo[Gate] = GATE_CLOSED; // Close the gate, to ensure the safety of motion of the lift
 
+	motor[RightWheels] = 0;	//stops motors befor lift goes up
+	motor[LeftWheels] = 0;
+
 	// Now check if we need to travel up or down.
 	if(nMotorEncoder[Lift] > encoderCounts) // Need to move down
 	{
@@ -592,7 +584,7 @@ void moveLift(int encoderCounts)
 			// We are now below the height of the lower base and need to slow down to let the last segment fall slowly
 			// This should only execute when the target is the base of the lift
 			nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-			motor[Lift] = -45;
+			motor[Lift] = -30;
 			while(nMotorRunState[Lift] != runStateIdle)
 			{
 				//let the motor reach the target
