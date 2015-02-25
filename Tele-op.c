@@ -55,7 +55,7 @@
 #define LIFT_HOLD_POSITION_POWER 5
 
 //Gate
-#define GATE_CLOSED 180
+#define GATE_CLOSED 130
 #define GATE_OPEN 10
 
 //Goal Hooks
