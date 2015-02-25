@@ -257,59 +257,39 @@ void rampFunction() //ramp, goals
 
 void kickstand()	//kicks kickstand depending on directional value of irseeker
 {
+	calcMove(40, 50, FORWARD, REGULATED);
 	readSensor(&irSeeker); // Reads the IR sensor values
+	wait1Msec(500);
 
 	switch(irSeeker.acDirection)
 	{
-		case 0: // for Position 1
-			calcMove(74, 50, FORWARD, REGULATED);
-			dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
-			calcMove(55, 50, FORWARD, REGULATED);
-			extendKickClaw();
-			calcMove(55, 50, BACKWARD, REGULATED);
-			break;
+	case 0: // for Position 1
+		calcMove(34, 50, FORWARD, REGULATED);
+		dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
+		calcMove(58, 50, FORWARD, REGULATED);
+		extendKickClaw();
+		calcMove(55, 50, BACKWARD, REGULATED);
+		break;
 
-		case 3:	// for Position 2
-			calcMove(40, 40, FORWARD, REGULATED);
-			dualMotorTurn(15, 40, CLOCKWISE);
-			calcMove(82,40,FORWARD,REGULATED);
-			dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
-			calcMove(28,40,FORWARD,REGULATED);
-			extendKickClaw();
-			calcMove(30,75,BACKWARD,REGULATED);
-			break;
+	case 3:	// for Position 2
+		dualMotorTurn(15, 40, CLOCKWISE);
+		calcMove(82,40,FORWARD,REGULATED);
+		dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
+		calcMove(31,40,FORWARD,REGULATED);
+		extendKickClaw();
+		calcMove(30,75,BACKWARD,REGULATED);
+		break;
 
-		case 5:
-		if(irSeeker.enhStrength > 65) // for Position 3
-		{
-			calcMove(50, 75, FORWARD, REGULATED);
-			dualMotorTurn(30, 60, CLOCKWISE);
-			calcMove(137, 60, FORWARD, REGULATED);
-			dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
-			calcMove(68, 50, FORWARD, REGULATED);
-			extendKickClaw();
-			calcMove(50, 50, BACKWARD, REGULATED);
-		}
-		else if((irSeeker.enhStrength > 30) && (irSeeker.enhStrength < 65)) // for Position 2
-		{
-			calcMove(40, 40, FORWARD, REGULATED);
-			dualMotorTurn(15, 40, CLOCKWISE);
-			calcMove(82,40,FORWARD,REGULATED);
-			dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
-			calcMove(28,40,FORWARD,REGULATED);
-			extendKickClaw();
-			calcMove(30,75,BACKWARD,REGULATED);
-		}
-		else if(irSeeker.enhStrength < 30) // for Position 1
-		{
-			calcMove(74, 50, FORWARD, REGULATED);
-			dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
-			calcMove(55, 50, FORWARD, REGULATED);
-			extendKickClaw();
-			calcMove(55, 50, BACKWARD, REGULATED);
-		}
-			break;
-	}	//switch
+	case 5:
+		calcMove(10, 75, FORWARD, REGULATED);
+		dualMotorTurn(30, 60, CLOCKWISE);
+		calcMove(137, 60, FORWARD, REGULATED);
+		dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
+		calcMove(71, 50, FORWARD, REGULATED);
+		extendKickClaw();
+		calcMove(50, 50, BACKWARD, REGULATED);
+		break;
+	}
 	retractKickClaw();
 }
 
