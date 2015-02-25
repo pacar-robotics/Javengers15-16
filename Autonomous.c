@@ -466,34 +466,36 @@ void readChoices() // Reads choices made in Choices.c
 		playTone(5000, 5);
 		stopAllTasks();
 	}
-
-	//reads choices
-	ReadShort(myFileHandle, nIoResult, startingPositionShort);
-	ReadShort(myFileHandle, nIoResult, delayTime);
-	Close(myFileHandle, nIoResult);
-
-	//sets values depending on choices
-
-	if(startingPositionShort == RAMP_START)
-	{
-		StartingPosition = Ramp;
-	}
-	else if(startingPositionShort == PARKING_ZONE)
-	{
-		StartingPosition = ParkingZone;
-	}
 	else
 	{
-		StartingPosition = Block;
-	}
+		//reads choices
+		ReadShort(myFileHandle, nIoResult, startingPositionShort);
+		ReadShort(myFileHandle, nIoResult, delayTime);
+		Close(myFileHandle, nIoResult);
 
-	if(delayTime != 0)
-	{
-		isDelay = true;
-	}
-	else
-	{
-		isDelay = false;
+		//sets values depending on choices
+
+		if(startingPositionShort == RAMP_START)
+		{
+			StartingPosition = Ramp;
+		}
+		else if(startingPositionShort == PARKING_ZONE)
+		{
+			StartingPosition = ParkingZone;
+		}
+		else
+		{
+			StartingPosition = Block;
+		}
+
+		if(delayTime != 0)
+		{
+			isDelay = true;
+		}
+		else
+		{
+			isDelay = false;
+		}
 	}
 }
 
