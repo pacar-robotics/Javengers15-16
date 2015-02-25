@@ -53,7 +53,7 @@
 
 // Goal Finger Positions
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 180
+#define GOAL_HOOKS_CLOSED 250
 
 //delay
 #define DELAY_TIME 10000
@@ -111,8 +111,9 @@ task LiftSafetyLowerLimitWatch();
 //task LiftSafetyLimitTouchWatch();
 task IntegrateGyroHeading();
 
+//stores the heading calculated by gyro
 float gyroHeading =0.0;
-float gyroOffset;
+
 
 
 task main()
@@ -126,14 +127,6 @@ task main()
 	//waitForStart();
 
 	// Robot specific code
-
-	//testing accuracy of turns.
-
-
-
-	//dualMotorTurn(90,70,COUNTER_CLOCKWISE,REGULATED);
-
-
 
 
 	if(isDelay)	// If there is a delay wait
@@ -254,11 +247,6 @@ void initializeRobot()
   // Start the calibration and display the offset
  	sensorCalibrate(&gyroSensor);
 
-  //erase display and show offset
- 	eraseDisplay();
-  displayTextLine(2, "Offset: %4f", gyroSensor.offset);
-
- 	gyroOffset=gyroSensor.offset;
 
 
 	nMotorEncoder[LeftWheels] = 0;
@@ -268,7 +256,7 @@ void initializeRobot()
 
 void rampFunction() //ramp, goals
 {
-	int directionError =0;
+
 	float CorrectedDistance=0.0;
 	float CorrectedAngle=0.0;
 	float Shift=0.0;
@@ -276,29 +264,31 @@ void rampFunction() //ramp, goals
 	//start the Gyro value integration in order to correct for the ramp direction errors
 	gyroHeading=0.0;
 	startTask(IntegrateGyroHeading);
-	calcMove(RAMP_DISTANCE, 30, BACKWARD, REGULATED);		//goes down ramp
+	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
+	wait1Msec(500); //wait for steadying of gyro.
 
 	stopTask(IntegrateGyroHeading);
 	//stop the Gyro Integration task.
 	//Now use values.
 
-	directionError=(int)gyroHeading;
+
 
 	eraseDisplay();
-	displayTextLine(1,"Dir Head: %d", gyroHeading);
-	displayTextLine(2,"Dir Err: %d", directionError);
-	wait1Msec(5000);
+	displayTextLine(2,"Dir Err: %4f", gyroHeading);
+	wait1Msec(500);
 
 	//now correct for this error.
 
-	//positive error, turn counter clockwise
-	if(directionError>0){
+	if(gyroHeading>0){
+
+	//this branch is not debugged. We always get a negative turn (counter clockwise) coming off ramp
+
 		playTone(5000,5);
 		//calculated, Shift, Corrected Angles and Distance
-		Shift=(sinDegrees(abs(directionError))/(cosDegrees(abs(directionError))))*RAMP_DISTANCE;
+		Shift=(sinDegrees(abs(gyroHeading))/(cosDegrees(abs(gyroHeading))))*RAMP_DISTANCE;
 
 		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2));
-		CorrectedAngle=90+abs(directionError)-(atan(65/Shift)*(180/PI));
+		CorrectedAngle=90+abs(gyroHeading)-(atan(65/Shift)*(180/PI));
 
 		eraseDisplay();
 		displayTextLine(1,"Corr Angle:%4f", CorrectedAngle);
@@ -310,33 +300,31 @@ void rampFunction() //ramp, goals
 
 		calcMove(CorrectedDistance-5,30,BACKWARD, REGULATED);
 
+
+		//final turn to align robot straight
 		dualMotorTurn(90-(atan(65/Shift)*(180/PI)),70,CLOCKWISE, REGULATED);
-		//display new heading error
 
-		eraseDisplay();
-		displayTextLine(2,"Err Head:%4f", directionError);
 
-		//correct for that heading.
 
 	}
 
-	//negative error, turn clockwise,  (trigonometry), to get to same spot
-	//not clear if this is more accurate than dead reckoning turns used before.
-	//needs testing.
-	if(directionError<0){
 
+
+	if(gyroHeading<0){
+	//negative error, turn clockwise,  (trigonometry), to get to where we need after correction.
 
 	  //calculated, Shift, Corrected Angles and Distance
-		Shift=(sinDegrees(abs(directionError))/(cosDegrees(abs(directionError))))*RAMP_DISTANCE;
+		Shift=(sinDegrees(abs(gyroHeading))/(cosDegrees(abs(gyroHeading))))*RAMP_DISTANCE;
 
-		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2));
-		CorrectedAngle=90+abs(directionError)-(atan(65/Shift)*(180/PI));
+		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2))-18; //adjustment of 18cm to avoid hitting edge
+		CorrectedAngle=90+abs(gyroHeading)-(atan(65/Shift)*(180/PI));
 
 		eraseDisplay();
-		displayTextLine(1,"Corr Angle:%4f", CorrectedAngle);
-		displayTextLine(2,"Corr Dist: %4f", CorrectedDistance);
+		displayTextLine(1,"Shift Dist:%4f", Shift);
+		displayTextLine(2,"Corr Angle:%4f", CorrectedAngle);
+		displayTextLine(3,"Corr Dist: %4f", CorrectedDistance);
 
-		wait1Msec(5000);
+		wait1Msec(500);
 
 
 
@@ -344,20 +332,16 @@ void rampFunction() //ramp, goals
 
 		calcMove(CorrectedDistance,30,BACKWARD, REGULATED);
 
+		//final correction to make the robot face the goal head on.
 		dualMotorTurn(90-(atan(65/Shift)*(180/PI)),70,COUNTER_CLOCKWISE, REGULATED);
-		//display new heading error
-
-		eraseDisplay();
-		displayTextLine(2,"Err Head:%4f", directionError);
-
-		//correct for that heading.
 
 	}
 
-wait1Msec(5000);
-	//dualMotorTurn(5,40,COUNTER_CLOCKWISE);
-	calcMove(2,70,BACKWARD,REGULATED);
+wait1Msec(500);
 
+//push the robot slowly right next to goal
+	calcMove(7,20,BACKWARD,REGULATED);
+//too fast and it will bounce off the edge of robot.
 	//try scoring goal.
 
 	moveLift(LIFT_MIDDLE);
@@ -373,9 +357,9 @@ wait1Msec(5000);
 	wait1Msec(300);
 	// Waits because the servo has time to move before the wheels start moving
 
-	dualMotorTurn(12, 60, CLOCKWISE, REGULATED);
+	dualMotorTurn(30, 60, CLOCKWISE, REGULATED);
 
-	calcMove(245, 90, FORWARD, REGULATED);
+	calcMove(225, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 60, COUNTER_CLOCKWISE, REGULATED);
 
 
