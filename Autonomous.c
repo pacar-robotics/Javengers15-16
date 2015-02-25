@@ -213,7 +213,7 @@ void initializeRobot()
 {
 	readChoices(); // Reads choices from a file that is written in from a program called Choices
 
-	if(ParkingZone)
+	if(StartingPosition == ParkingZone)
 	{
 		initSensor(&irSeeker, S2);
 		wait1Msec(250);
