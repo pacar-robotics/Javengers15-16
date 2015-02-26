@@ -340,7 +340,7 @@ void rampFunction() //ramp, goals
 wait1Msec(500);
 
 //push the robot slowly right next to goal
-	calcMove(7,20,BACKWARD,REGULATED);
+	calcMove(12,20,BACKWARD,REGULATED);
 //too fast and it will bounce off the edge of robot.
 	//try scoring goal.
 
@@ -359,7 +359,7 @@ wait1Msec(500);
 
 	dualMotorTurn(30, 60, CLOCKWISE, REGULATED);
 
-	calcMove(225, 90, FORWARD, REGULATED);
+	calcMove(230, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 60, COUNTER_CLOCKWISE, REGULATED);
 
 
