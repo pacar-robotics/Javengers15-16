@@ -8,7 +8,7 @@
 #pragma config(Motor,  mtr_S1_C1_2,     Spindle,       tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C2_1,     RightWheels,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     Lift,          tmotorTetrix, openLoop, reversed, encoder)
-#pragma config(Servo,  srvo_S1_C3_1,    KickClaw,             tServoContinuousRotation)
+#pragma config(Servo,  srvo_S1_C3_1,    KickClaw,             tServoStandard)
 #pragma config(Servo,  srvo_S1_C3_2,    servo2,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S1_C3_4,    servo4,               tServoNone)
@@ -50,10 +50,8 @@
 #define GOAL_HOOKS_CLOSED 185
 
 // Kickstand Servo
-#define KICKCLAW_REVERSE_START 0
-#define KICKCLAW_FORWARD_START 255
-#define KICKCLAW_STOP 127
-#define KICKCLAW_MOVE_TIME 750 //in msec
+#define KICKCLAW_OUT 255
+#define KICKCLAW_IN 0
 
 //used to regulate motors
 #define REGULATED true
@@ -76,8 +74,7 @@ void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction);
 void moveLift(int encoderCounts);
-void extendKickClaw();
-void retractKickClaw();
+
 
 //for irSeeker
 tHTIRS2 irSeeker;
@@ -267,7 +264,8 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		calcMove(34, 50, FORWARD, REGULATED);
 		dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
 		calcMove(58, 50, FORWARD, REGULATED);
-		extendKickClaw();
+		servo[KickClaw] = KICKCLAW_OUT;
+		wait1Msec(500);
 		calcMove(55, 50, BACKWARD, REGULATED);
 		break;
 
@@ -275,8 +273,9 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		dualMotorTurn(15, 40, CLOCKWISE);
 		calcMove(82,40,FORWARD,REGULATED);
 		dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
-		calcMove(31,40,FORWARD,REGULATED);
-		extendKickClaw();
+		calcMove(31,60,FORWARD,REGULATED);
+		servo[KickClaw] = KICKCLAW_OUT;
+		wait1Msec(500);
 		calcMove(30,75,BACKWARD,REGULATED);
 		break;
 
@@ -286,11 +285,12 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		calcMove(137, 60, FORWARD, REGULATED);
 		dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
 		calcMove(71, 50, FORWARD, REGULATED);
-		extendKickClaw();
+		servo[KickClaw] = KICKCLAW_OUT;
+		wait1Msec(500);
 		calcMove(50, 50, BACKWARD, REGULATED);
 		break;
 	}
-	retractKickClaw();
+	servo[KickClaw] = KICKCLAW_IN;
 }
 
 void blockFunction()
@@ -497,18 +497,4 @@ void readChoices() // Reads choices made in Choices.c
 			isDelay = false;
 		}
 	}
-}
-
-void retractKickClaw()
-{
-	servo[KickClaw]=KICKCLAW_REVERSE_START;
-	wait1Msec(KICKCLAW_MOVE_TIME);
-	servo[KickClaw]=KICKCLAW_STOP;
-}
-
-void extendKickClaw()
-{
-	servo[KickClaw]=KICKCLAW_FORWARD_START;
-	wait1Msec(KICKCLAW_MOVE_TIME);
-	servo[KickClaw]=KICKCLAW_STOP;
 }
