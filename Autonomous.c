@@ -89,7 +89,7 @@ short delayTime;
 const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 
-enum StartingPositionEnum {ParkingZone, Ramp, Block};
+enum StartingPositionEnum {ParkingZone, Ramp, Blocks};
 StartingPositionEnum StartingPosition;
 
 enum LiftStateEnum {Running, Stopped};
@@ -124,7 +124,7 @@ task main()
 	{
 		kickstand();
 	}
-	else if(StartingPosition == Block)
+	else if(StartingPosition == Blocks)
 	{
 		blockFunction();
 	}
@@ -229,7 +229,7 @@ void initializeRobot()
 
 	nMotorEncoder[Lift] = 0;
 
-	retractKickClaw();
+	servo[KickClaw] = KICKCLAW_IN;
 }
 
 void rampFunction() //ramp, goals
