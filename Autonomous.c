@@ -47,7 +47,7 @@
 
 // Goal Finger Positions
 #define GOAL_HOOKS_OPEN 10
-#define GOAL_HOOKS_CLOSED 185
+#define GOAL_HOOKS_CLOSED 250
 
 // Kickstand Servo
 #define KICKCLAW_OUT 255
