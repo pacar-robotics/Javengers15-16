@@ -43,7 +43,7 @@
 
 // Gate
 #define GATE_CLOSED 180
-#define GATE_OPEN 10
+#define GATE_OPEN 0
 
 // Goal Finger Positions
 #define GOAL_HOOKS_OPEN 10
