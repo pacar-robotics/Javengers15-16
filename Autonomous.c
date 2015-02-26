@@ -483,9 +483,13 @@ void readChoices() // Reads choices made in Choices.c
 		{
 			StartingPosition = ParkingZone;
 		}
+		else if(startingPositionShort == BLOCK)
+		{
+			StartingPosition = Blocks;
+		}
 		else
 		{
-			StartingPosition = Block;
+			playTone(3000, 50);
 		}
 
 		if(delayTime != 0)
