@@ -262,18 +262,19 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 	{
 	case 0: // for Position 1
 		calcMove(34, 50, FORWARD, REGULATED);
-		dualMotorTurn(45, 30, COUNTER_CLOCKWISE);
-		calcMove(58, 50, FORWARD, REGULATED);
+		dualMotorTurn(42, 30, COUNTER_CLOCKWISE);
+		calcMove(66, 50, FORWARD, REGULATED);
+		dualMotorTurn(17, 50, CLOCKWISE);
 		servo[KickClaw] = KICKCLAW_OUT;
 		wait1Msec(500);
-		calcMove(55, 50, BACKWARD, REGULATED);
+		calcMove(55, 70, BACKWARD, REGULATED);
 		break;
 
 	case 3:	// for Position 2
 		dualMotorTurn(15, 40, CLOCKWISE);
-		calcMove(82,40,FORWARD,REGULATED);
-		dualMotorTurn(105, 40, COUNTER_CLOCKWISE);
-		calcMove(31,60,FORWARD,REGULATED);
+		calcMove(80,40,FORWARD,REGULATED);
+		dualMotorTurn(100, 40, COUNTER_CLOCKWISE);
+		calcMove(35,60,FORWARD,REGULATED);
 		servo[KickClaw] = KICKCLAW_OUT;
 		wait1Msec(500);
 		calcMove(30,75,BACKWARD,REGULATED);
@@ -283,7 +284,7 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		calcMove(10, 75, FORWARD, REGULATED);
 		dualMotorTurn(30, 60, CLOCKWISE);
 		calcMove(137, 60, FORWARD, REGULATED);
-		dualMotorTurn(145, 60, COUNTER_CLOCKWISE);
+		dualMotorTurn(143, 60, COUNTER_CLOCKWISE);
 		calcMove(71, 50, FORWARD, REGULATED);
 		servo[KickClaw] = KICKCLAW_OUT;
 		wait1Msec(500);
