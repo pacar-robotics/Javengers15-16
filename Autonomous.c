@@ -50,7 +50,7 @@
 #define GOAL_HOOKS_CLOSED 250
 
 // Kickstand Servo
-#define KICKCLAW_OUT 255
+#define KICKCLAW_OUT 240
 #define KICKCLAW_IN 0
 
 //used to regulate motors
