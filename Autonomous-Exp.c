@@ -80,6 +80,7 @@ void initializeRobot();
 void calcMove(float centimeters, float power, bool direction, bool isRegulated);
 void dualMotorTurn(float robotDegrees, float power, bool direction, bool isRegulated); //use power >60 if regulated
 void moveLift(int encoderCounts);
+void gyroTurn(float Angle, float Power, bool isRegulated);
 
 //for irSeeker
 tHTIRS2 irSeeker;
@@ -260,74 +261,59 @@ void rampFunction() //ramp, goals
 	float CorrectedDistance=0.0;
 	float CorrectedAngle=0.0;
 	float Shift=0.0;
-
+  float DeltaDistance=0.0;
 	//start the Gyro value integration in order to correct for the ramp direction errors
 	gyroHeading=0.0;
 	startTask(IntegrateGyroHeading);
-	calcMove(RAMP_DISTANCE, 50, BACKWARD, REGULATED);		//goes down ramp
-	wait1Msec(500); //wait for steadying of gyro.
 
-	stopTask(IntegrateGyroHeading);
+	calcMove(RAMP_DISTANCE/5, 50, BACKWARD, REGULATED);
+	gyroTurn(0,50,REGULATED);
+	calcMove(RAMP_DISTANCE/5, 50, BACKWARD, REGULATED);
+	gyroTurn(0,50,REGULATED);
+	calcMove(RAMP_DISTANCE/5, 50, BACKWARD, REGULATED);
+	gyroTurn(0,50,REGULATED);
+	calcMove(RAMP_DISTANCE/5, 50, BACKWARD, REGULATED);
+	gyroTurn(0,50,REGULATED);
+	calcMove(RAMP_DISTANCE/5, 50, BACKWARD, REGULATED);
+	gyroTurn(0,50,REGULATED);
+
+
+	wait1Msec(500); //wait for steadying of robot.
+
+	//stopTask(IntegrateGyroHeading);
 	//stop the Gyro Integration task.
 	//Now use values.
 
 
 
-	eraseDisplay();
-	displayTextLine(2,"Dir Err: %4f", gyroHeading);
-	wait1Msec(500);
+
 
 	//now correct for this error.
-
-	if(gyroHeading>0){
-
-	//this branch is not debugged. We always get a negative turn (counter clockwise) coming off ramp
-
-		playTone(5000,5);
-		//calculated, Shift, Corrected Angles and Distance
-		Shift=(sinDegrees(abs(gyroHeading))/(cosDegrees(abs(gyroHeading))))*RAMP_DISTANCE;
-
-		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2));
-		CorrectedAngle=90+abs(gyroHeading)-(atan(65/Shift)*(180/PI));
-
-		eraseDisplay();
-		displayTextLine(1,"Corr Angle:%4f", CorrectedAngle);
-		displayTextLine(2,"Corr Dist: %4f", CorrectedDistance-5); //with adjustment to avoid hitting perimeter
-
-		wait1Msec(5000);
-
-		dualMotorTurn(CorrectedAngle,70,COUNTER_CLOCKWISE,REGULATED);
-
-		calcMove(CorrectedDistance-5,30,BACKWARD, REGULATED);
-
-
-		//final turn to align robot straight
-		dualMotorTurn(90-(atan(65/Shift)*(180/PI)),70,CLOCKWISE, REGULATED);
-
-
-
-	}
 
 
 
 	if(gyroHeading<0){
 	//negative error, turn clockwise,  (trigonometry), to get to where we need after correction.
 
+	  //Delta movement to account for radius turn
+		DeltaDistance=(RAMP_DISTANCE/cosDegrees(abs(gyroHeading)))-RAMP_DISTANCE;
+		//move DeltaDistance forward to complete right angle triangle.
+		calcMove(DeltaDistance,30,BACKWARD,REGULATED);
+
+
 	  //calculated, Shift, Corrected Angles and Distance
 		Shift=(sinDegrees(abs(gyroHeading))/(cosDegrees(abs(gyroHeading))))*RAMP_DISTANCE;
 
 		CorrectedDistance=sqrt(pow(Shift,2)+pow(65,2))-18; //adjustment of 18cm to avoid hitting edge
-		CorrectedAngle=90+abs(gyroHeading)-(atan(65/Shift)*(180/PI));
+		CorrectedAngle=90+abs(gyroHeading)-(atan2(65,Shift)*(180/PI));
 
 		eraseDisplay();
-		displayTextLine(1,"Shift Dist:%4f", Shift);
-		displayTextLine(2,"Corr Angle:%4f", CorrectedAngle);
-		displayTextLine(3,"Corr Dist: %4f", CorrectedDistance);
+		displayTextLine(1,"Heading:%4f", gyroHeading);
+		displayTextLine(2,"Shift Dist:%4f", Shift);
+		displayTextLine(3,"Corr Angle:%4f", CorrectedAngle);
+		displayTextLine(4,"Corr Dist: %4f", CorrectedDistance);
 
-		wait1Msec(500);
-
-
-
+		/*
 		dualMotorTurn(CorrectedAngle,70,CLOCKWISE,REGULATED);
 
 		calcMove(CorrectedDistance,30,BACKWARD, REGULATED);
@@ -335,8 +321,20 @@ void rampFunction() //ramp, goals
 		//final correction to make the robot face the goal head on.
 		dualMotorTurn(90-(atan(65/Shift)*(180/PI)),70,COUNTER_CLOCKWISE, REGULATED);
 
-	}
+		*/
 
+		//turn to 90 degrees.
+		//dualMotorTurn(abs(gyroHeading)+90,60,CLOCKWISE,REGULATED);
+		//gyroTurn(87,40,REGULATED);
+		//move Shift cm.
+		//calcMove(Shift-5,50,BACKWARD,REGULATED);
+		//dualMotorTurn(90,50,COUNTER_CLOCKWISE,REGULATED);
+		//gyroTurn(3,40,REGULATED);
+
+		//wait1Msec(2000);
+
+	}
+calcMove(65,70,BACKWARD,REGULATED);
 wait1Msec(500);
 
 //push the robot slowly right next to goal
@@ -352,12 +350,13 @@ wait1Msec(500);
 
 
 
-	dualMotorTurn(5, 40, CLOCKWISE, REGULATED);
+	dualMotorTurn(15, 40, CLOCKWISE, REGULATED);
+	wait1Msec(500);
 	servo[Hooks] = GOAL_HOOKS_CLOSED; // Grabs the goal
 	wait1Msec(300);
 	// Waits because the servo has time to move before the wheels start moving
 
-	dualMotorTurn(30, 60, CLOCKWISE, REGULATED);
+	dualMotorTurn(25, 60, CLOCKWISE, REGULATED);
 
 	calcMove(230, 90, FORWARD, REGULATED);
 	dualMotorTurn(180, 60, COUNTER_CLOCKWISE, REGULATED);
@@ -424,6 +423,9 @@ void calcMove(float centimeters, float power, bool direction, bool isRegulated)
 	nMotorEncoder[RightWheels] = 0;
 
 	encoder_counts = (centimeters / (DIAMETER * PI)) * 1440; // converts centimeters to motor encoder counts
+	if(encoder_counts<=0){
+		encoder_counts=0.01;
+	}
 
 	if (!direction) //check for direction.
 	{
@@ -456,6 +458,10 @@ void calcMove(float centimeters, float power, bool direction, bool isRegulated)
 void dualMotorTurn(float robotDegrees, float power, bool direction, bool isRegulated) //robot turns using both motors
 {
 	float encoderCounts = ( TRACK_DISTANCE / DIAMETER) * robotDegrees * 4;
+	if(encoderCounts<=0){
+		encoderCounts=0.01;
+	}
+
 
 	// PID control at low speeds have problems for turning. Use higher power (>60)
 
@@ -485,7 +491,7 @@ void dualMotorTurn(float robotDegrees, float power, bool direction, bool isRegul
 		motor[RightWheels] = -1 * power;
 	}
 
-	while((nMotorRunState[LeftWheels] != runStateIdle) && (nMotorRunState[RightWheels] != runStateIdle))
+	while((nMotorRunState[LeftWheels] != runStateIdle) || (nMotorRunState[RightWheels] != runStateIdle))
 	{
 
 		//do nothing while we wait for motors to spin to correct angles.
@@ -617,5 +623,39 @@ task IntegrateGyroHeading(){
 		//add the current rotation reading to the previous readings dividing by time elapsed
 		gyroHeading =gyroHeading+ (gyroSensor.rotation)*0.02;
 	}
+
+}
+
+void gyroTurn(float Angle, float Power, bool isRegulated){
+
+
+	// PID control at low speeds have problems for turning. Use higher power (>60)
+
+	if(isRegulated){
+		nMotorPIDSpeedCtrl[LeftWheels] = mtrSpeedReg;
+		nMotorPIDSpeedCtrl[RightWheels] = mtrSpeedReg;
+	}else{
+			nMotorPIDSpeedCtrl[LeftWheels] = mtrNoReg;
+			nMotorPIDSpeedCtrl[RightWheels] = mtrNoReg;
+	}
+
+	if(gyroHeading<Angle){
+		motor[LeftWheels]=Power*-1;
+		motor[RightWheels]=Power;
+
+		while(gyroHeading<Angle){
+			//intentionally blank
+		}
+
+	}else{
+		motor[LeftWheels]=Power;
+		motor[RightWheels]=Power*-1;
+
+		while(gyroHeading>Angle){
+			//intentionally blank
+		}
+	}
+		motor[LeftWheels]=0;
+		motor[RightWheels]=0;
 
 }
