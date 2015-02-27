@@ -20,7 +20,7 @@
 
 //experimental version that tests using a gyro.
 
-//#include "JoystickDriver.c"
+#include "JoystickDriver.c"
 #include "hitechnic-irseeker-v2.h"	//used for IR Seeker
 #include "lego-touch.h"
 #include "hitechnic-gyro.h"
@@ -124,7 +124,7 @@ task main()
 	startTask (LiftSafetyLowerLimitWatch);
 	//startTask (LiftSafetyLimitTouchWatch);
 
-	//waitForStart();
+	waitForStart();
 
 	// Robot specific code
 
