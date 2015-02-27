@@ -292,6 +292,7 @@ void kickstand()	//kicks kickstand depending on directional value of irseeker
 		break;
 	}
 	servo[KickClaw] = KICKCLAW_IN;
+	wait1Msec(500);
 }
 
 void blockFunction()
