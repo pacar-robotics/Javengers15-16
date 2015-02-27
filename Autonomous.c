@@ -60,6 +60,7 @@
 //file used in Choice.c
 #define DATA_FILE_NAME "choices.txt"
 
+//#defines used when reading file
 #define RAMP_START 1
 #define PARKING_ZONE 0
 #define BLOCK 3
@@ -80,14 +81,13 @@ void moveLift(int encoderCounts);
 tHTIRS2 irSeeker;
 
 bool isDelay;
-int CurrentPosition;
-int TargetPosition;
 short delayTime;
 
-//const tMUXSensor GoalBaseTouch1 = msensor_S4_1;
-//const tMUXSensor GoalBaseTouch2 = msensor_S4_2;
-const tMUXSensor LiftLimitTouch = msensor_S4_3;
+//For moveLift
+int CurrentPosition;
+int TargetPosition;
 
+const tMUXSensor LiftLimitTouch = msensor_S4_3;
 
 enum StartingPositionEnum {ParkingZone, Ramp, Blocks};
 StartingPositionEnum StartingPosition;
@@ -115,7 +115,8 @@ task main()
 	{
 		wait1Msec(delayTime*1000);
 	}
-
+	//enumerations from choices.c
+	//determines starting position
 	if(StartingPosition == Ramp)
 	{
 		rampFunction();
