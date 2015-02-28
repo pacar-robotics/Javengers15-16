@@ -277,7 +277,7 @@ task holdPosition()
 
 void colorSignal()
 {
-	if((TSreadState(GoalBaseTouch1) != 0)||(TSreadState(GoalBaseTouch2)))
+	if(TSreadState(GoalBaseTouch2))
 	{
 		if(ServoValue[Hooks] > 100)
 		{
