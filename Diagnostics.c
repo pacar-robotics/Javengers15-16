@@ -528,6 +528,7 @@ void testKickClaw()
 	servo[KickClaw] = KICKCLAW_OUT;
 	wait1Msec(750);
 	servo[KickClaw] = KICKCLAW_IN;
+	wait1Msec(750);
 
 	if(!confirmWorking())
 	{
