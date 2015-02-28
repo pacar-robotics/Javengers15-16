@@ -578,7 +578,7 @@ void moveLift(int encoderCounts)
 		// Check if we are travelling below the lower goal, special handling, until counterweight deployed.
 		LiftState = Running;
 		nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-		motor[Lift] = -90;
+		motor[Lift] = -95;
 
 		while(nMotorRunState[Lift] != runStateIdle && nMotorEncoder[Lift] >= LIFT_LOWER)
 		{
