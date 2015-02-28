@@ -27,6 +27,7 @@
 #define BTN_LIFT_BASE joy2Btn(2)
 #define BTN_LIFT_TOPGOAL joy2Btn(3)
 #define BTN_LIFT_MIDDLEGOAL joy2Btn(4)
+#define BTN_GATE_HALF_CTRL joy2Btn(5)
 #define BTN_GATE_CTRL joy2Btn(6)
 #define BTN_LIFT_UP joy2Btn(11)
 #define BTN_LIFT_DOWN joy2Btn(12)
@@ -56,6 +57,7 @@
 
 //Gate
 #define GATE_CLOSED 110
+#define GATE_HALF 50
 #define GATE_OPEN 0
 
 //Goal Hooks
@@ -388,12 +390,12 @@ void processControls()
 	{
 		if(time1[T3] > 500)	//checks to see if button is pressed too fast
 		{
-			if(GateState == Closed)
+			if(GateState != Open)
 			{
 				servo[Gate] = GATE_OPEN;	//opens gate
 				GateState = Open;
 			}
-			else
+			else if(GateState == Open)
 			{
 				servo[Gate] = GATE_CLOSED;	//closes gate
 				GateState = Closed;
@@ -401,6 +403,11 @@ void processControls()
 			clearTimer(T3);
 		} // if(time1[T3]>500)
 	} // if(BTN_GATE_CTRL)
+
+	if(BTN_GATE_HALF_CTRL)
+	{
+		servo[Gate] = GATE_HALF;
+	}
 
 	if(BTN_LIFT_BASE)
 	{
@@ -571,7 +578,7 @@ void moveLift(int encoderCounts)
 		// Check if we are travelling below the lower goal, special handling, until counterweight deployed.
 		LiftState = Running;
 		nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-		motor[Lift] = -85;
+		motor[Lift] = -90;
 
 		while(nMotorRunState[Lift] != runStateIdle && nMotorEncoder[Lift] >= LIFT_LOWER)
 		{
@@ -584,7 +591,7 @@ void moveLift(int encoderCounts)
 			// We are now below the height of the lower base and need to slow down to let the last segment fall slowly
 			// This should only execute when the target is the base of the lift
 			nMotorEncoderTarget[Lift] = CurrentPosition - encoderCounts;
-			motor[Lift] = -30;
+			motor[Lift] = -70;
 			while(nMotorRunState[Lift] != runStateIdle)
 			{
 				//let the motor reach the target
