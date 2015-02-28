@@ -31,7 +31,7 @@
 
 // Kickstand Servo
 #define KICKCLAW_OUT 240
-#define KICKCLAW_IN 0
+#define KICKCLAW_IN 40
 
 tHTIRS2 irSeeker;
 
